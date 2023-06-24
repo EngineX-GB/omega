@@ -1,19 +1,25 @@
 package com.enginex;
 
+import com.enginex.model.JobRunnerMode;
+import com.enginex.model.SystemMode;
 import com.enginex.processor.CleanupProcessor;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.processor.FileAggregationProcessor;
-import com.enginex.processor.impl.AggregationProcessorImpl;
-import com.enginex.processor.impl.CleanupProcessorImpl;
-import com.enginex.processor.impl.DownloadProcessorImpl;
+import com.enginex.processor.SystemProcessor;
+import com.enginex.processor.impl.*;
+import com.enginex.runner.JobRunner;
+import com.enginex.runner.JobRunnerImpl;
 import com.enginex.strategy.SingleStrategy;
 import com.enginex.strategy.Strategy;
 import com.enginex.util.AppUtil;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class Main {
+
+    private static final SystemMode MODE = SystemMode.TEST;
 
     private static void initialise() throws Exception{
         if (System.getProperty("library.path") != null) {
@@ -29,6 +35,36 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+
+        final FileAggregationProcessor aggregationProcessor;
+        final CleanupProcessor cleanupProcessor;
+        final DownloadProcessor downloadProcessor;
+        final SystemProcessor systemProcessor;
+        final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.SINGLE);
+
+        if (MODE == SystemMode.PRODUCTION) {
+            aggregationProcessor = new AggregationProcessorImpl();
+            cleanupProcessor = new CleanupProcessorImpl();
+            downloadProcessor = new DownloadProcessorImpl();
+            systemProcessor = new SystemProcessorImpl();
+        } else if (MODE == SystemMode.DEV){
+            aggregationProcessor = new AggregationProcessorImpl();
+            cleanupProcessor = new CleanupProcessorImpl();
+            downloadProcessor = new DownloadProcessorImpl();
+            systemProcessor = new SystemProcessorImpl();
+            System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
+            System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
+            System.setProperty("ffmpeg.path", "C:/Users/rm_82/Desktop/ffmpeg-master-latest-win64-gpl/bin");
+        } else {
+            aggregationProcessor = new NoOpAggregationProcessorImpl();
+            cleanupProcessor = new NoOpCleanupProcessorImpl();
+            downloadProcessor = new NoOpDownloadProcessorImpl();
+            systemProcessor = new NoOpSystemProcessorImpl();
+            System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
+            System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
+            System.setProperty("ffmpeg.path", "C:/Users/rm_82/Desktop/ffmpeg-master-latest-win64-gpl/bin");
+        }
+
         initialise();
         String url = "", filename = "";
         final String tempPath = System.getProperty("temp.path");
@@ -46,12 +82,9 @@ public class Main {
             System.exit(1);
         }
 
-        final FileAggregationProcessor aggregationProcessor = new AggregationProcessorImpl();
-        final CleanupProcessor cleanupProcessor = new CleanupProcessorImpl();
-        final DownloadProcessor downloadProcessor = new DownloadProcessorImpl();
 
-        Strategy singleStrategy = new SingleStrategy(url, tempPath + "/" + UUID.randomUUID(), filename,  downloadProcessor, aggregationProcessor, cleanupProcessor);
-        singleStrategy.start();
+        Strategy singleStrategy = new SingleStrategy(url, tempPath + "/" + UUID.randomUUID(), filename,  downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
+        jobRunner.run(Arrays.asList(singleStrategy));
 
     }
 }

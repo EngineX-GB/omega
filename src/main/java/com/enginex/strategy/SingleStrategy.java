@@ -3,11 +3,9 @@ package com.enginex.strategy;
 import com.enginex.processor.CleanupProcessor;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.processor.FileAggregationProcessor;
+import com.enginex.processor.SystemProcessor;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,28 +18,27 @@ public class SingleStrategy implements Strategy {
     private final DownloadProcessor downloadProcessor;
     private final FileAggregationProcessor aggregationProcessor;
     private final CleanupProcessor cleanupProcessor;
+    private final SystemProcessor systemProcessor;
 
     private String filename;
 
     static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.ts");
     public SingleStrategy(final String url, String directory, String filename, final DownloadProcessor downloadProcessor,
                           final FileAggregationProcessor aggregationProcessor,
-                          final CleanupProcessor cleanupProcessor) {
+                          final CleanupProcessor cleanupProcessor, final SystemProcessor systemProcessor) {
         this.url = url;
         this.directory = directory;
         this.filename = filename;
         this.downloadProcessor = downloadProcessor;
         this.aggregationProcessor = aggregationProcessor;
         this.cleanupProcessor = cleanupProcessor;
+        this.systemProcessor = systemProcessor;
     }
 
     @Override
     public void start() throws Exception {
         final String libraryDirectory = System.getProperty("library.path");
-        final Path dirpath = Paths.get(directory);
-        if (Files.notExists(dirpath)) {
-            Files.createDirectories(dirpath);
-        }
+        systemProcessor.createDirectory(directory);
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
             System.out.println("[INFO] Start downloading : " + filename);

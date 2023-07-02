@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class SingleStrategy implements Strategy {
 
-    static final Integer MAX_FILE_SIZE = 1000;
+    static final Integer MAX_FILE_SIZE = 2000;
 
     final String url;
     final String directory;

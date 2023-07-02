@@ -26,7 +26,8 @@ public class SystemProcessorImpl implements SystemProcessor {
             throw new Exception ("File : " + filePath + " does not exist or is empty");
         }
         Files.lines(path).forEach( s -> {
-            links.add(new Link(s.split(",")[1], s.split(",")[0]));
+            String[] spl = s.split("\\|");
+            links.add(new Link(spl[1], spl[0]));
         });
         return links;
     }

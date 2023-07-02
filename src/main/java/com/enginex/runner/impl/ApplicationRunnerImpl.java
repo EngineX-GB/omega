@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
-    private static final SystemMode MODE = SystemMode.TEST;
+    private static final SystemMode MODE = SystemMode.PRODUCTION;
 
     @Override
     public void run(Request request) throws Exception {

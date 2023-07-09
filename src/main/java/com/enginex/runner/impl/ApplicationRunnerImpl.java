@@ -6,6 +6,8 @@ import com.enginex.processor.impl.*;
 import com.enginex.runner.ApplicationRunner;
 import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
+import com.enginex.service.DiscoveryService;
+import com.enginex.service.impl.DiscoveryServiceImpl;
 import com.enginex.strategy.SingleStrategy;
 import com.enginex.strategy.Strategy;
 import com.enginex.util.AppUtil;
@@ -17,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
-    private static final SystemMode MODE = SystemMode.PRODUCTION;
+    private static final SystemMode MODE = SystemMode.DEV;
 
     @Override
     public void run(Request request) throws Exception {
@@ -26,6 +28,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         final DownloadProcessor downloadProcessor;
         final SystemProcessor systemProcessor;
         final JobProcessor jobProcessor;
+        final DiscoveryService discoveryService;
+        final DiscoveryProcessor discoveryProcessor;
         final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.SINGLE);
 
         if (MODE == SystemMode.PRODUCTION) {
@@ -33,12 +37,16 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             cleanupProcessor = new CleanupProcessorImpl();
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
+            discoveryService = new DiscoveryServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
         } else if (MODE == SystemMode.DEV){
             aggregationProcessor = new AggregationProcessorImpl();
             cleanupProcessor = new CleanupProcessorImpl();
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
+            discoveryService = new DiscoveryServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
             System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
@@ -48,6 +56,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             cleanupProcessor = new NoOpCleanupProcessorImpl();
             downloadProcessor = new NoOpDownloadProcessorImpl();
             systemProcessor = new NoOpSystemProcessorImpl();
+            discoveryService = null; // TODO: Add no-op implementation
+            discoveryProcessor = null; //TODO: Add no-op implementation
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
             System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
@@ -67,6 +77,12 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             System.out.println("[INFO] library.path: " + System.getProperty("library.path"));
             System.out.println("[INFO] temp.path : " + System.getProperty("temp.path"));
             System.exit(0);
+        }
+        else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            final List<Link> resolvedLinks = discoveryProcessor.discover(links);
+            final List<Strategy> strategyList = jobProcessor.generateSrategies(resolvedLinks);
+            jobRunner.run(strategyList);
         }
     }
 

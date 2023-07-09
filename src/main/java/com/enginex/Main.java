@@ -27,6 +27,10 @@ public class Main {
                 request.setOperation(Operation.BATCH);
                 request.setInputFilePath(args[1]);
                 break;
+            case "-d":
+                request.setOperation(Operation.DISCOVER_AND_BATCH);
+                request.setInputFilePath(args[1]);
+                break;
             default:
                 throw new Exception(String.format("Unknown Operation : %s", args[0]));
         }

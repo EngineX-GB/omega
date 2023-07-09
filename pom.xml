@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <!-- build uberjar with command: mvn clean compile assembly:single -->
+    <!-- build and package with command:mvn clean package assembly:single -->
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.enginex</groupId>
@@ -58,6 +59,39 @@
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <delete dir="${project.basedir}/release" />
+                                <delete dir="${project.basedir}/build" />
+                                <mkdir dir="${project.basedir}/release" />
+                                <mkdir dir="${project.basedir}/build/assemble" />
+                                <mkdir dir="${project.basedir}/build/final" />
+                                <mkdir dir="${project.basedir}/build/assemble/logs" />
+                                <copy file="scripts/omegad.bat" tofile="${project.basedir}/build/assemble/omegad.bat" />
+                                <copy file="scripts/omegab.bat" tofile="${project.basedir}/build/assemble/omegab.bat" />
+                                <copy file="scripts/omegai.bat" tofile="${project.basedir}/build/assemble/omegai.bat" />
+                                <copy file="target/omega-1.1-SNAPSHOT-jar-with-dependencies.jar"
+                                      tofile="${project.basedir}/build/assemble/omega-1.1-SNAPSHOT-jar-with-dependencies.jar" />
+                                <zip destFile="${project.basedir}/build/final/omega-cmd.zip" baseDir="${project.basedir}/build/assemble" />
+                                <copy file="scripts/installer.ps1" tofile="${project.basedir}/build/final/installer.ps1" />
+                                <copy file="scripts/installer.bat" tofile="${project.basedir}/build/final/installer.bat" />
+                                <zip destFile="${project.basedir}/release/omega-cmd.zip" baseDir="${project.basedir}/build/final" />
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

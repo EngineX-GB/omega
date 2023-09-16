@@ -16,10 +16,30 @@ Run:
 
 `mvn clean install` to build the project
 
-`mvn clean compile assembly:single` To build the UBER jar in the target folder
+`mvn clean package -P prod` To build the UBER jar and create the distributable package (in the 'release' folder)
 
-### Execute the project
+### Execute the project:
 
-Use the following example:
+Ensure that when you create the final package that the SystemMode enum in `ApplicationRunnerImpl.java` is set to `PRODUCTION`.
 
-`java -Dlibrary.path=C:/Users/<username>/Desktop/omega/library -Dtemp.path=C:/users/<username>/Desktop/omega/temp -Dffmpeg.path=C:/Users/<username>/Desktop/ffmpeg-master-latest-win64-gpl/bin -jar omega-1.0-SNAPSHOT-jar-with-dependencies.jar -i <URL> <OUTPUT_NAME>`
+You can set the `SystemMode` enum to `DEV` to set up the properties locally on your machine without needing to set them in the run configuration on your IDE
+
+### Running the tool
+
+Use the following scripts:
+
+### `omegai.bat <URL> <OUTPUT_FILENAME> <STRATEGY_MODE>`
+
+Strategy mode can either be `SINGLE` or `MULTI_FILE`
+
+### `omegad.bat <FILE_PATH_TO_INPUT_FILE>`
+
+Input file will be a delimited file (by `|` character) in the following format:
+
+`output_filename|strategymode|pageUrl_for_discovery_service
+
+### `omegab.bat <FILE_PATH_TO_INPUT_FILE>`
+
+Input file will be a delimited file (by `|` character) in the following format:
+
+`output_filename|strategymode|linkurl`

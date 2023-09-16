@@ -28,7 +28,7 @@ public class SystemProcessorImpl implements SystemProcessor {
         }
         Files.lines(path).forEach( s -> {
             String[] spl = s.split("\\|");
-            links.add(new Link(spl[1], spl[0], StrategyType.valueOf(spl[3].toUpperCase())));
+            links.add(new Link(spl[2], spl[0], StrategyType.valueOf(spl[1].toUpperCase())));
         });
         return links;
     }

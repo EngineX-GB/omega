@@ -14,11 +14,23 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
 
+
+    private String resolveDiscoveryServiceAdapter() {
+        final String discoveryServiceAdapter = System.getProperty("discovery.service.adapter");
+        if (discoveryServiceAdapter == null) {
+            System.out.println("[WARN] Discovery service adapter is null. Now setting it to 'default'");
+            return "default";
+        }
+        return discoveryServiceAdapter;
+    }
+
+
     @Override
     public String getResourceUtl(String url) {
+
         final DiscoveryRequest discoveryRequest = new DiscoveryRequest();
         discoveryRequest.setUrl(url);
-        discoveryRequest.setAdapterName("default");
+        discoveryRequest.setAdapterName(resolveDiscoveryServiceAdapter());
 
         try {
             final String requestString = MAPPER.writeValueAsString(discoveryRequest);

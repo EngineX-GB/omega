@@ -88,6 +88,12 @@
                                 <mkdir dir="${project.basedir}/build/assemble" />
                                 <mkdir dir="${project.basedir}/build/final" />
                                 <mkdir dir="${project.basedir}/build/assemble/logs" />
+                                <get src="https://github.com/EngineX-GB/resources/releases/download/1.0.0/ffmpeg-master-latest-win64-gpl.zip"
+                                     dest="${project.basedir}/build/assemble/ffmpeg-master-latest-win64-gpl.zip"
+                                     verbose="false"
+                                     usetimestamp="true"/>
+                                <unzip src="${project.basedir}/build/assemble/ffmpeg-master-latest-win64-gpl.zip" dest="${project.basedir}/build/assemble/tools" />
+                                <delete file="${project.basedir}/build/assemble/ffmpeg-master-latest-win64-gpl.zip" />
                                 <copy file="scripts/omegad.bat" tofile="${project.basedir}/build/assemble/omegad.bat" />
                                 <copy file="scripts/omegab.bat" tofile="${project.basedir}/build/assemble/omegab.bat" />
                                 <copy file="scripts/omegai.bat" tofile="${project.basedir}/build/assemble/omegai.bat" />

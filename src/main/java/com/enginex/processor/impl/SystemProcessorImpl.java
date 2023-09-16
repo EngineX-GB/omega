@@ -1,6 +1,7 @@
 package com.enginex.processor.impl;
 
 import com.enginex.model.Link;
+import com.enginex.model.StrategyType;
 import com.enginex.processor.SystemProcessor;
 
 import java.nio.file.Files;
@@ -27,7 +28,7 @@ public class SystemProcessorImpl implements SystemProcessor {
         }
         Files.lines(path).forEach( s -> {
             String[] spl = s.split("\\|");
-            links.add(new Link(spl[1], spl[0]));
+            links.add(new Link(spl[1], spl[0], StrategyType.valueOf(spl[3].toUpperCase())));
         });
         return links;
     }

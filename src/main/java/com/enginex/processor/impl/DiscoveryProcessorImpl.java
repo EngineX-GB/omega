@@ -22,7 +22,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
         for (final Link link : links) {
             final Optional<String> url = retrieveUrl(link);
             if (url.isPresent()){
-                newLinks.add(new Link(url.get(), link.getFilename()));
+                newLinks.add(new Link(url.get(), link.getFilename(), link.getStrategyType()));
             }
         }
         return newLinks;

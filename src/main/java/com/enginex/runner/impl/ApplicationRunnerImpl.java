@@ -8,6 +8,7 @@ import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
 import com.enginex.service.DiscoveryService;
 import com.enginex.service.impl.DiscoveryServiceImpl;
+import com.enginex.strategy.MultiFileStrategy;
 import com.enginex.strategy.SingleStrategy;
 import com.enginex.strategy.Strategy;
 import com.enginex.util.AppUtil;
@@ -19,7 +20,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
-    private static final SystemMode MODE = SystemMode.DEV;
+
+    // to update manually when developing it. Revert to PRODUCTION once packaging a release
+    private static final SystemMode MODE = SystemMode.PRODUCTION;
 
     @Override
     public void run(Request request) throws Exception {
@@ -48,9 +51,9 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             discoveryService = new DiscoveryServiceImpl();
             discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
-            System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
-            System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
-            System.setProperty("ffmpeg.path", "C:/Users/rm_82/Desktop/ffmpeg-master-latest-win64-gpl/bin");
+            System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
+            System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");
+            System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         } else {
             aggregationProcessor = new NoOpAggregationProcessorImpl();
             cleanupProcessor = new NoOpCleanupProcessorImpl();
@@ -59,14 +62,20 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             discoveryService = null; // TODO: Add no-op implementation
             discoveryProcessor = null; //TODO: Add no-op implementation
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
-            System.setProperty("temp.path", "C:/Users/rm_82/Desktop/omega/temp");
-            System.setProperty("library.path", "C:/Users/rm_82/Desktop/omega/library");
-            System.setProperty("ffmpeg.path", "C:/Users/rm_82/Desktop/ffmpeg-master-latest-win64-gpl/bin");
+            System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
+            System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");
+            System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         }
         initialise();
         if (request.getOperation() == Operation.INTERACTIVE) {
-            final Strategy singleStrategy = new SingleStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(),  downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
-            jobRunner.run(Arrays.asList(singleStrategy));
+            final Strategy strategy;
+            if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
+                strategy = new SingleStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
+            } else {
+                strategy = new MultiFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
+            }
+            jobRunner.run(Arrays.asList(strategy));
+
         }
         else if (request.getOperation() == Operation.BATCH) {
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
@@ -74,8 +83,10 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             jobRunner.run(strategyList);
         }
         else if (request.getOperation() == Operation.VIEW_CONFIG) {
-            System.out.println("[INFO] library.path: " + System.getProperty("library.path"));
+            System.out.println("[INFO] Mode : " + MODE);
+            System.out.println("[INFO] library.path : " + System.getProperty("library.path"));
             System.out.println("[INFO] temp.path : " + System.getProperty("temp.path"));
+            System.out.println("[INFO] ffmpeg.path : " + System.getProperty("ffmpeg.path"));
             System.exit(0);
         }
         else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {
@@ -94,7 +105,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             AppUtil.createDir(System.getProperty("temp.path"));
         }
         if (System.getProperty("ffmpeg.path") == null || Files.notExists(Paths.get(System.getProperty("ffmpeg.path")))) {
-            System.err.println("[ERROR] ffmpeg location cannot be found");
+            System.err.println("[ERROR] ffmpeg location cannot be found. Path specified is : [" + System.getProperty("ffmpeg.path") + "]");
             System.exit(1);
         }
     }

@@ -8,7 +8,6 @@ public class Request {
 
     private Operation operation;
 
-
     public String getInputFilePath() {
         return inputFilePath;
     }

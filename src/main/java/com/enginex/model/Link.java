@@ -6,9 +6,12 @@ public class Link {
 
     private String filename;
 
-    public Link(final String url, final String filename) {
+    private StrategyType strategyType;
+
+    public Link(final String url, final String filename, final StrategyType strategyType) {
         this.url = url;
         this.filename = filename;
+        this.strategyType = strategyType;
     }
 
     public String getUrl() {
@@ -27,5 +30,12 @@ public class Link {
         this.filename = filename;
     }
 
+    public StrategyType getStrategyType() {
+        return strategyType;
+    }
+
+    public void setStrategyType(StrategyType strategyType) {
+        this.strategyType = strategyType;
+    }
 
 }

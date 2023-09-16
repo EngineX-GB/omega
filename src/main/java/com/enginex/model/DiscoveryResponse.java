@@ -13,8 +13,6 @@ public class DiscoveryResponse {
 
     private String url;
 
-
-
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime timestamp;

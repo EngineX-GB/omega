@@ -8,8 +8,8 @@ import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
 import com.enginex.service.DiscoveryService;
 import com.enginex.service.impl.DiscoveryServiceImpl;
+import com.enginex.strategy.SingleFileStrategy;
 import com.enginex.strategy.MultiFileStrategy;
-import com.enginex.strategy.SingleStrategy;
 import com.enginex.strategy.Strategy;
 import com.enginex.util.AppUtil;
 
@@ -70,16 +70,15 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         if (request.getOperation() == Operation.INTERACTIVE) {
             final Strategy strategy;
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
-                strategy = new SingleStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
+                strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
             } else {
-                strategy = new MultiFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
+                strategy = new MultiFileStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
             }
             jobRunner.run(Arrays.asList(strategy));
-
         }
         else if (request.getOperation() == Operation.BATCH) {
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-            final List<Strategy> strategyList = jobProcessor.generateSrategies(links);
+            final List<Strategy> strategyList = jobProcessor.generateStrategies(links);
             jobRunner.run(strategyList);
         }
         else if (request.getOperation() == Operation.VIEW_CONFIG) {
@@ -92,7 +91,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
             final List<Link> resolvedLinks = discoveryProcessor.discover(links);
-            final List<Strategy> strategyList = jobProcessor.generateSrategies(resolvedLinks);
+            final List<Strategy> strategyList = jobProcessor.generateStrategies(resolvedLinks);
             jobRunner.run(strategyList);
         }
     }

@@ -1,8 +1,10 @@
 package com.enginex.processor.impl;
 
 import com.enginex.model.Link;
+import com.enginex.model.StrategyType;
 import com.enginex.processor.*;
-import com.enginex.strategy.SingleStrategy;
+import com.enginex.strategy.MultiFileStrategy;
+import com.enginex.strategy.SingleFileStrategy;
 import com.enginex.strategy.Strategy;
 
 import java.util.ArrayList;
@@ -28,11 +30,15 @@ public class JobProcessorImpl implements JobProcessor {
     }
 
     @Override
-    public List<Strategy> generateSrategies(final List<Link> links) throws Exception {
+    public List<Strategy> generateStrategies(final List<Link> links) throws Exception {
         final List<Strategy> strategyList = new ArrayList<>();
         for (final Link link : links) {
-            strategyList.add(new SingleStrategy(link.getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), link.getFilename(),
-                    downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor));
+            if (link.getStrategyType() == StrategyType.MULTI_FILE) {
+                strategyList.add(new MultiFileStrategy(link.getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), link.getFilename(),
+                        downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor));
+            } else {
+                strategyList.add(new SingleFileStrategy(downloadProcessor, link.getUrl(), link.getFilename()));
+            }
         }
         return strategyList;
     }

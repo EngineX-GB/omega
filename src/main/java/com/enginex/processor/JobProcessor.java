@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface JobProcessor {
 
-    List<Strategy> generateSrategies(final List<Link> links) throws Exception;
+    List<Strategy> generateStrategies(final List<Link> links) throws Exception;
 
 }

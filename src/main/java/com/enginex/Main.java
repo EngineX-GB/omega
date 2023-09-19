@@ -32,6 +32,10 @@ public class Main {
                 request.setOperation(Operation.DISCOVER_AND_BATCH);
                 request.setInputFilePath(args[1]);
                 break;
+            case "-c":
+                request.setOperation(Operation.CONCURRENT_DISCOVER_AND_BATCH);
+                request.setInputFilePath(args[1]);
+                break;
             default:
                 throw new Exception(String.format("Unknown Operation : %s", args[0]));
         }

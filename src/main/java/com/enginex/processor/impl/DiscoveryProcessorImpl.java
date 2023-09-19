@@ -28,6 +28,16 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
         return newLinks;
     }
 
+    @Override
+    public Link discover(final Link link) {
+        final Optional<String> url = retrieveUrl(link);
+        if (url.isPresent()) {
+            return new Link(url.get(), link.getFilename(), link.getStrategyType());
+        }
+        return null;
+    }
+
+
 
     private Optional<String> retrieveUrl (final Link link) {
         int numberOfRetries = 0, maxRetries = 10;

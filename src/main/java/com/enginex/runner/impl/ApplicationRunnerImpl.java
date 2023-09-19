@@ -3,6 +3,7 @@ package com.enginex.runner.impl;
 import com.enginex.model.*;
 import com.enginex.processor.*;
 import com.enginex.processor.impl.*;
+import com.enginex.runner.AdvancedJobRunnerImpl;
 import com.enginex.runner.ApplicationRunner;
 import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
@@ -33,7 +34,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         final JobProcessor jobProcessor;
         final DiscoveryService discoveryService;
         final DiscoveryProcessor discoveryProcessor;
-        final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.SINGLE);
+        final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.CONCURRENT);
 
         if (MODE == SystemMode.PRODUCTION) {
             aggregationProcessor = new AggregationProcessorImpl();
@@ -93,6 +94,18 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             final List<Link> resolvedLinks = discoveryProcessor.discover(links);
             final List<Strategy> strategyList = jobProcessor.generateStrategies(resolvedLinks);
             jobRunner.run(strategyList);
+        }
+        else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
+            //TODO: Experimental code
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
+            advancedJobRunner.start();
+            for (final Link discoveryLink : links) {
+                final Link link = discoveryProcessor.discover(discoveryLink);
+                if (link != null) {
+                    advancedJobRunner.publish(link);
+                }
+            }
         }
     }
 

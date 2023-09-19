@@ -8,4 +8,8 @@ public interface JobRunner {
 
     void run (List<Strategy> strategyList);
 
+    void run (Strategy strategy);
+
+    void stop();
+
 }

@@ -31,4 +31,21 @@ public class JobRunnerImpl implements JobRunner {
         }
         executorService.shutdown();
     }
+
+    public void run(final Strategy strategy) {
+        executorService.submit(() -> {
+            try {
+                strategy.start();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Override
+    public void stop() {
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
 }

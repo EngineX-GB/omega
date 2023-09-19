@@ -8,4 +8,6 @@ public interface DiscoveryProcessor {
 
     List<Link> discover(final List<Link> links);
 
+    Link discover(final Link link);
+
 }

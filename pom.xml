@@ -97,6 +97,8 @@
                                 <copy file="scripts/omegad.bat" tofile="${project.basedir}/build/assemble/omegad.bat" />
                                 <copy file="scripts/omegab.bat" tofile="${project.basedir}/build/assemble/omegab.bat" />
                                 <copy file="scripts/omegai.bat" tofile="${project.basedir}/build/assemble/omegai.bat" />
+                                <copy file="scripts/omegat.bat" tofile="${project.basedir}/build/assemble/omegat.bat" />
+                                <copy file="scripts/omegac.bat" tofile="${project.basedir}/build/assemble/omegac.bat" />
                                 <copy file="target/omega-1.1-SNAPSHOT-jar-with-dependencies.jar"
                                       tofile="${project.basedir}/build/assemble/omega-1.1-SNAPSHOT-jar-with-dependencies.jar" />
                                 <zip destFile="${project.basedir}/build/final/omega-cmd.zip" baseDir="${project.basedir}/build/assemble" />

@@ -16,3 +16,11 @@ git push origin %output%
 
 rem Set the new snapshot version
 call mvn build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}-SNAPSHOT versions:commit
+
+call mvn help:evaluate -Dexpression=project.version -q -DforceStdout > target/version.txt
+
+for /f %%a in (target/version.txt) do set output=%%a
+
+git add pom.xml
+git commit -m "POM version %output%"
+git push

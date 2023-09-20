@@ -43,3 +43,9 @@ Input file will be a delimited file (by `|` character) in the following format:
 Input file will be a delimited file (by `|` character) in the following format:
 
 `output_filename|strategymode|linkurl`
+
+## update the version
+
+Run this maven command to update the version:
+
+`mvn versions:set versions:commit -DnewVersion="1.1.1"`

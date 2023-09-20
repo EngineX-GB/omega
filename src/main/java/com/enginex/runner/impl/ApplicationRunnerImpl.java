@@ -27,7 +27,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationRunnerImpl.class);
 
     // to update manually when developing it. Revert to PRODUCTION once packaging a release
-    private static final SystemMode MODE = SystemMode.DEV;
+    private static final SystemMode MODE = SystemMode.PRODUCTION;
 
     @Override
     public void run(Request request) throws Exception {
@@ -121,7 +121,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             AppUtil.createDir(System.getProperty("temp.path"));
         }
         if (System.getProperty("ffmpeg.path") == null || Files.notExists(Paths.get(System.getProperty("ffmpeg.path")))) {
-            System.err.println("[ERROR] ffmpeg location cannot be found. Path specified is : [" + System.getProperty("ffmpeg.path") + "]");
+            LOGGER.error("ffmpeg location cannot be found. Path specified is : [" + System.getProperty("ffmpeg.path") + "]");
             System.exit(1);
         }
     }

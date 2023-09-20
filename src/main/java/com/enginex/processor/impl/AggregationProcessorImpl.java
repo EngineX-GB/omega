@@ -36,7 +36,7 @@ public class AggregationProcessorImpl implements FileAggregationProcessor {
         final String processMessage = "";
         if (exitValue == 1) {
             final String processError = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-            System.err.println(processError);
+            LOGGER.error(processError);
         }
         return new ProcessResult(exitValue, processMessage);
     }

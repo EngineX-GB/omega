@@ -4,6 +4,8 @@ import com.enginex.processor.CleanupProcessor;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.processor.FileAggregationProcessor;
 import com.enginex.processor.SystemProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -21,6 +23,8 @@ public class MultiFileStrategy implements Strategy {
     private final SystemProcessor systemProcessor;
 
     private String filename;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiFileStrategy.class);
 
     static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.ts");
     public MultiFileStrategy(final String url, String directory, String filename, final DownloadProcessor downloadProcessor,
@@ -41,7 +45,7 @@ public class MultiFileStrategy implements Strategy {
         systemProcessor.createDirectory(directory);
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
-            System.out.println("[INFO] Start downloading : " + filename);
+            LOGGER.info("Start downloading : " + filename);
             final String templateFilename = matcher.group(0).replace(matcher.group(1), "-{d}-");
             final String templateUrl = url.replace(matcher.group(0), templateFilename);
             // now download the files in numerical order
@@ -49,7 +53,7 @@ public class MultiFileStrategy implements Strategy {
                 try {
                     downloadProcessor.download(templateUrl.replace("{d}", String.valueOf(i)), generateOutputFileName(directory, i));
                 } catch (IOException e) {
-                    System.out.println("[WARN] " + e.getMessage() +". Breaking loop");
+                    LOGGER.warn(e.getMessage() +". Breaking loop");
                     break;
                 }
             }

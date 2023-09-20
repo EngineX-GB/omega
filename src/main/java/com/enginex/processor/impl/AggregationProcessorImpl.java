@@ -11,11 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AggregationProcessorImpl implements FileAggregationProcessor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AggregationProcessorImpl.class);
     @Override
     public Boolean aggregate(String directory, String libraryDirectory, String filename) throws Exception {
-        System.out.println("[INFO] Aggregating the data");
+        LOGGER.info("Aggregating the data");
         generateManifestFile(directory);
         String ffMpegPath = System.getProperty("ffmpeg.path");
         String[] cmdArgs = {"cmd", "/c", ffMpegPath + "/ffmpeg.exe -nostats -loglevel 0 -f concat -i list.txt -c copy " + libraryDirectory + "/" + filename +".mp4"};

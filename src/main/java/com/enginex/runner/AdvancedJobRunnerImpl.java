@@ -3,6 +3,8 @@ package com.enginex.runner;
 import com.enginex.model.Link;
 import com.enginex.processor.JobProcessor;
 import com.enginex.strategy.Strategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AdvancedJobRunnerImpl {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedJobRunnerImpl.class);
 
     private BlockingQueue<Link> queue = new ArrayBlockingQueue<>(100);
 
@@ -42,7 +46,7 @@ public class AdvancedJobRunnerImpl {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                System.out.println("[INFO] Running consumer thread for Advanced Job Runner");
+                LOGGER.info("Running consumer thread for Advanced Job Runner");
                 while(jobsToProcess > 0) {
                     if (queue.size() > 0) {
                         try {
@@ -55,7 +59,7 @@ public class AdvancedJobRunnerImpl {
                         }
                     }
                 }
-                System.out.println("[INFO] Completed all tasks....");
+                LOGGER.info("Completed all tasks....");
                 jobRunner.stop();
             }
         });

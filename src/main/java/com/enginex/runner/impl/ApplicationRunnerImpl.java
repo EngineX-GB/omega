@@ -13,6 +13,8 @@ import com.enginex.strategy.SingleFileStrategy;
 import com.enginex.strategy.MultiFileStrategy;
 import com.enginex.strategy.Strategy;
 import com.enginex.util.AppUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -22,8 +24,10 @@ import java.util.UUID;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationRunnerImpl.class);
+
     // to update manually when developing it. Revert to PRODUCTION once packaging a release
-    private static final SystemMode MODE = SystemMode.PRODUCTION;
+    private static final SystemMode MODE = SystemMode.DEV;
 
     @Override
     public void run(Request request) throws Exception {
@@ -83,10 +87,10 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             jobRunner.run(strategyList);
         }
         else if (request.getOperation() == Operation.VIEW_CONFIG) {
-            System.out.println("[INFO] Mode : " + MODE);
-            System.out.println("[INFO] library.path : " + System.getProperty("library.path"));
-            System.out.println("[INFO] temp.path : " + System.getProperty("temp.path"));
-            System.out.println("[INFO] ffmpeg.path : " + System.getProperty("ffmpeg.path"));
+            LOGGER.info("Mode : " + MODE);
+            LOGGER.info("library.path : " + System.getProperty("library.path"));
+            LOGGER.info("temp.path : " + System.getProperty("temp.path"));
+            LOGGER.info("ffmpeg.path : " + System.getProperty("ffmpeg.path"));
             System.exit(0);
         }
         else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {

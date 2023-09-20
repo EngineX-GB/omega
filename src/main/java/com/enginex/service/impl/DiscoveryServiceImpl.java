@@ -4,6 +4,8 @@ import com.enginex.model.DiscoveryRequest;
 import com.enginex.model.DiscoveryResponse;
 import com.enginex.service.DiscoveryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,13 +14,15 @@ import java.net.http.HttpResponse;
 
 public class DiscoveryServiceImpl implements DiscoveryService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryServiceImpl.class);
+
     static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
 
 
     private String resolveDiscoveryServiceAdapter() {
         final String discoveryServiceAdapter = System.getProperty("discovery.service.adapter");
         if (discoveryServiceAdapter == null) {
-            System.out.println("[WARN] Discovery service adapter is null. Now setting it to 'default'");
+            LOGGER.warn("Discovery service adapter is null. Now setting it to 'default'");
             return "default";
         }
         return discoveryServiceAdapter;

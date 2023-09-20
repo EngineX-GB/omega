@@ -3,14 +3,18 @@ package com.enginex.processor.impl;
 import com.enginex.model.Link;
 import com.enginex.model.StrategyType;
 import com.enginex.processor.SystemProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class NoOpSystemProcessorImpl implements SystemProcessor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NoOpSystemProcessorImpl.class);
     @Override
     public void createDirectory(String directory) throws Exception {
-        System.out.println("[INFO] create: directory=" + directory);
+        LOGGER.info("create: directory=" + directory);
     }
 
     @Override

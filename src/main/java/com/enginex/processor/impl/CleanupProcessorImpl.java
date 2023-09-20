@@ -1,6 +1,8 @@
 package com.enginex.processor.impl;
 
 import com.enginex.processor.CleanupProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -8,10 +10,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public class CleanupProcessorImpl implements CleanupProcessor {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CleanupProcessor.class);
+
     @Override
     public void cleanup(String dir) throws Exception {
         Path directory = Paths.get(dir);
-        System.out.println("[INFO] Cleaning up the temp files");
+        LOGGER.info("Cleaning up the temp files");
         Files.walkFileTree(directory, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {

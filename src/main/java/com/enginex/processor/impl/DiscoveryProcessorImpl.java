@@ -3,12 +3,16 @@ package com.enginex.processor.impl;
 import com.enginex.model.Link;
 import com.enginex.processor.DiscoveryProcessor;
 import com.enginex.service.DiscoveryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class DiscoveryProcessorImpl implements DiscoveryProcessor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryProcessorImpl.class);
 
     private DiscoveryService discoveryService;
 
@@ -51,7 +55,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
                 return Optional.of(url);
             }
             numberOfRetries++;
-            System.out.println("[INFO] Retrying " + numberOfRetries + " time(s) to get resolved link for " + link.getUrl());
+            LOGGER.info("Retrying " + numberOfRetries + " time(s) to get resolved link for " + link.getUrl());
         }
         return Optional.empty();
     }

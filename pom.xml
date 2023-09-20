@@ -9,7 +9,7 @@
 
     <groupId>com.enginex</groupId>
     <artifactId>omega</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -61,6 +61,19 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/version.txt</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
     <profiles>
         <profile>
             <id>prod</id>
@@ -117,12 +130,22 @@
                                 <copy file="scripts/omegai.bat" tofile="${project.basedir}/build/assemble/omegai.bat" />
                                 <copy file="scripts/omegat.bat" tofile="${project.basedir}/build/assemble/omegat.bat" />
                                 <copy file="scripts/omegac.bat" tofile="${project.basedir}/build/assemble/omegac.bat" />
-                                <copy file="target/omega-1.1-SNAPSHOT-jar-with-dependencies.jar"
-                                      tofile="${project.basedir}/build/assemble/omega-1.1-SNAPSHOT-jar-with-dependencies.jar" />
+                                <copy file="target/omega-${project.version}-jar-with-dependencies.jar"
+                                      tofile="${project.basedir}/build/assemble/omega-${project.version}-jar-with-dependencies.jar" />
+                                <replace file="${project.basedir}/build/assemble/omegab.bat"
+                                         token="@project.version" value="${project.version}"/>
+                                <replace file="${project.basedir}/build/assemble/omegad.bat"
+                                         token="@project.version" value="${project.version}"/>
+                                <replace file="${project.basedir}/build/assemble/omegai.bat"
+                                         token="@project.version" value="${project.version}"/>
+                                <replace file="${project.basedir}/build/assemble/omegat.bat"
+                                         token="@project.version" value="${project.version}"/>
+                                <replace file="${project.basedir}/build/assemble/omegac.bat"
+                                         token="@project.version" value="${project.version}"/>
                                 <zip destFile="${project.basedir}/build/final/omega-cmd.zip" baseDir="${project.basedir}/build/assemble" />
                                 <copy file="scripts/installer.ps1" tofile="${project.basedir}/build/final/installer.ps1" />
                                 <copy file="scripts/installer.bat" tofile="${project.basedir}/build/final/installer.bat" />
-                                <zip destFile="${project.basedir}/release/omega-cmd.zip" baseDir="${project.basedir}/build/final" />
+                                <zip destFile="${project.basedir}/release/omega-cmd-${project.version}-installer.zip" baseDir="${project.basedir}/build/final" />
                             </tasks>
                         </configuration>
                     </execution>

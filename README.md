@@ -46,6 +46,14 @@ Input file will be a delimited file (by `|` character) in the following format:
 
 ## update the version
 
-Run this maven command to update the version:
+Run this maven command to update the version manually:
 
 `mvn versions:set versions:commit -DnewVersion="1.1.1"`
+
+Increment the build version:
+
+`mvn build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} versions:commit`
+
+In an example of versioning a snapshot version (e.g. 1.1.0-SNAPSHOT) to a release version (1.1.0), then run the following command:
+
+`mvn build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} versions:commit`

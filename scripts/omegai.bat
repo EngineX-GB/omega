@@ -3,5 +3,5 @@ FOR %%A in (%*) DO SET /A ARGS_COUNT+=1
 
 @echo off
 call setenv.bat
-java -Dlibrary.path=%INSTALL_DIR%/library -Dtemp.path=%INSTALL_DIR%/temp -Dffmpeg.path=%INSTALL_DIR%/tools/ffmpeg-master-latest-win64-gpl/bin -jar omega-1.1-SNAPSHOT-jar-with-dependencies.jar -i %1 %2 %3%
+java -Dlibrary.path=%INSTALL_DIR%/library -Dtemp.path=%INSTALL_DIR%/temp -Dffmpeg.path=%INSTALL_DIR%/tools/ffmpeg-master-latest-win64-gpl/bin -jar omega-@project.version-jar-with-dependencies.jar -i %1 %2 %3%
 @echo on

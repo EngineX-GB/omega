@@ -15,7 +15,7 @@ public class JobRunnerImpl implements JobRunner {
         if (mode == JobRunnerMode.SINGLE) {
             this.executorService = Executors.newSingleThreadExecutor();
         } else {
-            this.executorService = Executors.newFixedThreadPool(3);
+            this.executorService = Executors.newFixedThreadPool(5);
         }
     }
 

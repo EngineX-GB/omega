@@ -9,7 +9,7 @@
 
     <groupId>com.enginex</groupId>
     <artifactId>omega</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.6-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

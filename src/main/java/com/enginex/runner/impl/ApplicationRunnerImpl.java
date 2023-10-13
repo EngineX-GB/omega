@@ -27,7 +27,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationRunnerImpl.class);
 
     // to update manually when developing it. Revert to PRODUCTION once packaging a release
-    private static final SystemMode MODE = SystemMode.PRODUCTION;
+    private static final SystemMode MODE = System.getProperty("system.mode") != null ? SystemMode.valueOf(System.getProperty("system.mode")) : SystemMode.DEV;
 
     @Override
     public void run(Request request) throws Exception {

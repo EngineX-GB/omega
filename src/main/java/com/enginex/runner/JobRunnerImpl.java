@@ -2,6 +2,8 @@ package com.enginex.runner;
 
 import com.enginex.model.JobRunnerMode;
 import com.enginex.strategy.Strategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -9,13 +11,16 @@ import java.util.concurrent.Executors;
 
 public class JobRunnerImpl implements JobRunner {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobRunnerImpl.class);
     final ExecutorService executorService;
 
     public JobRunnerImpl(final JobRunnerMode mode) {
         if (mode == JobRunnerMode.SINGLE) {
             this.executorService = Executors.newSingleThreadExecutor();
         } else {
-            this.executorService = Executors.newFixedThreadPool(5);
+            final Integer threadPoolSize = System.getProperty("thread.pool.size") != null ? Integer.valueOf(System.getProperty("thread.pool.size")) : 5;
+            LOGGER.info("Thread pool size = {}", threadPoolSize);
+            this.executorService = Executors.newFixedThreadPool(threadPoolSize);
         }
     }
 

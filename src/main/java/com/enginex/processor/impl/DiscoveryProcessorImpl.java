@@ -29,14 +29,15 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
     public List<Link> discover(List<Link> links) {
         final List<Link> newLinks = new LinkedList<>();
         for (final Link link : links) {
-            if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+            final AuditResponseCode responseCode = auditService.isDuplicate(link);
+            if ( responseCode != AuditResponseCode.DUPLICATE) {
                 final Optional<String> url = retrieveUrl(link);
                 if (url.isPresent()){
                     auditService.update(link);
                     newLinks.add(new Link(url.get(), link.getFilename(), link.getStrategyType()));
                 }
             } else {
-                LOGGER.warn("Duplicate link identified for file : {}", link.getFilename());
+                LOGGER.warn("Audit Service Response for :  {} ->. {}", link.getFilename(), responseCode.name());
             }
         }
         return newLinks;
@@ -44,7 +45,8 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
 
     @Override
     public Link discover(final Link link) {
-        if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+        final AuditResponseCode responseCode = auditService.isDuplicate(link);
+        if (responseCode != AuditResponseCode.DUPLICATE) {
             final Optional<String> url = retrieveUrl(link);
             if (url.isPresent()) {
                 auditService.update(link);
@@ -52,7 +54,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
             }
         }
         else {
-            LOGGER.warn("Duplicate link identified for file : {}", link.getFilename());
+            LOGGER.warn("Audit Service Response for :  {} ->. {}", link.getFilename(), responseCode.name());
         }
         return null;
     }

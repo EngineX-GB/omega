@@ -1,7 +1,9 @@
 package com.enginex.processor.impl;
 
+import com.enginex.model.AuditResponseCode;
 import com.enginex.model.Link;
 import com.enginex.processor.DiscoveryProcessor;
+import com.enginex.service.AuditService;
 import com.enginex.service.DiscoveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,17 +18,25 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
 
     private DiscoveryService discoveryService;
 
-    public DiscoveryProcessorImpl(final DiscoveryService discoveryService) {
+    private AuditService auditService;
+
+    public DiscoveryProcessorImpl(final DiscoveryService discoveryService, final AuditService auditService) {
         this.discoveryService = discoveryService;
+        this.auditService = auditService;
     }
 
     @Override
     public List<Link> discover(List<Link> links) {
         final List<Link> newLinks = new LinkedList<>();
         for (final Link link : links) {
-            final Optional<String> url = retrieveUrl(link);
-            if (url.isPresent()){
-                newLinks.add(new Link(url.get(), link.getFilename(), link.getStrategyType()));
+            if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+                final Optional<String> url = retrieveUrl(link);
+                if (url.isPresent()){
+                    auditService.update(link);
+                    newLinks.add(new Link(url.get(), link.getFilename(), link.getStrategyType()));
+                }
+            } else {
+                LOGGER.warn("Duplicate link identified for file : {}", link.getFilename());
             }
         }
         return newLinks;
@@ -34,9 +44,15 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
 
     @Override
     public Link discover(final Link link) {
-        final Optional<String> url = retrieveUrl(link);
-        if (url.isPresent()) {
-            return new Link(url.get(), link.getFilename(), link.getStrategyType());
+        if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+            final Optional<String> url = retrieveUrl(link);
+            if (url.isPresent()) {
+                auditService.update(link);
+                return new Link(url.get(), link.getFilename(), link.getStrategyType());
+            }
+        }
+        else {
+            LOGGER.warn("Duplicate link identified for file : {}", link.getFilename());
         }
         return null;
     }

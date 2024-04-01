@@ -7,7 +7,9 @@ import com.enginex.runner.AdvancedJobRunnerImpl;
 import com.enginex.runner.ApplicationRunner;
 import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
+import com.enginex.service.AuditService;
 import com.enginex.service.DiscoveryService;
+import com.enginex.service.impl.AuditServiceImpl;
 import com.enginex.service.impl.DiscoveryServiceImpl;
 import com.enginex.strategy.SingleFileStrategy;
 import com.enginex.strategy.MultiFileStrategy;
@@ -37,6 +39,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         final SystemProcessor systemProcessor;
         final JobProcessor jobProcessor;
         final DiscoveryService discoveryService;
+        final AuditService auditService;
         final DiscoveryProcessor discoveryProcessor;
         final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.CONCURRENT);
 
@@ -46,7 +49,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
             discoveryService = new DiscoveryServiceImpl();
-            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
+            auditService = new AuditServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService, auditService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
         } else if (MODE == SystemMode.DEV){
             aggregationProcessor = new AggregationProcessorImpl();
@@ -54,7 +58,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
             discoveryService = new DiscoveryServiceImpl();
-            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
+            auditService = new AuditServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService, auditService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
             System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");

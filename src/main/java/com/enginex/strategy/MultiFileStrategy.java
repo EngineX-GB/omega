@@ -1,9 +1,11 @@
 package com.enginex.strategy;
 
+import com.enginex.handler.IPCMessageHandler;
 import com.enginex.processor.CleanupProcessor;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.processor.FileAggregationProcessor;
 import com.enginex.processor.SystemProcessor;
+import com.enginex.util.AppUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,7 @@ public class MultiFileStrategy implements Strategy {
     private final FileAggregationProcessor aggregationProcessor;
     private final CleanupProcessor cleanupProcessor;
     private final SystemProcessor systemProcessor;
+    private final IPCMessageHandler ipcMessageHandler;
 
     private String filename;
 
@@ -29,7 +32,8 @@ public class MultiFileStrategy implements Strategy {
     static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.ts");
     public MultiFileStrategy(final String url, String directory, String filename, final DownloadProcessor downloadProcessor,
                              final FileAggregationProcessor aggregationProcessor,
-                             final CleanupProcessor cleanupProcessor, final SystemProcessor systemProcessor) {
+                             final CleanupProcessor cleanupProcessor, final SystemProcessor systemProcessor,
+                             final IPCMessageHandler ipcMessageHandler) {
         this.url = url;
         this.directory = directory;
         this.filename = filename;
@@ -37,6 +41,7 @@ public class MultiFileStrategy implements Strategy {
         this.aggregationProcessor = aggregationProcessor;
         this.cleanupProcessor = cleanupProcessor;
         this.systemProcessor = systemProcessor;
+        this.ipcMessageHandler = ipcMessageHandler;
     }
 
     @Override
@@ -46,6 +51,7 @@ public class MultiFileStrategy implements Strategy {
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
             LOGGER.info("Start downloading : " + filename);
+            AppUtil.dispatchMessage(ipcMessageHandler, "Downloading file : " + filename);
             final String templateFilename = matcher.group(0).replace(matcher.group(1), "-{d}-");
             final String templateUrl = url.replace(matcher.group(0), templateFilename);
             // now download the files in numerical order
@@ -58,6 +64,7 @@ public class MultiFileStrategy implements Strategy {
                 }
             }
             Boolean aggregationResult = aggregationProcessor.aggregate(directory, libraryDirectory, filename);
+            AppUtil.dispatchMessage(ipcMessageHandler, "Aggregating files for " + filename);
             if (aggregationResult) {
                 cleanupProcessor.cleanup(directory);
             }

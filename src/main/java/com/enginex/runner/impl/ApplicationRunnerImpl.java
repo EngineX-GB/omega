@@ -1,5 +1,6 @@
 package com.enginex.runner.impl;
 
+import com.enginex.handler.IPCMessageHandler;
 import com.enginex.model.*;
 import com.enginex.processor.*;
 import com.enginex.processor.impl.*;
@@ -82,7 +83,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
                 strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
             } else {
-                strategy = new MultiFileStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
+                strategy = new MultiFileStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }
             jobRunner.run(Arrays.asList(strategy));
         }
@@ -115,6 +116,15 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                     advancedJobRunner.publish(link);
                 }
             }
+        }
+        else if (request.getOperation() == Operation.IPC) {
+            //for the IPC operation, set the ipcMessageHandler to the jobProcessor
+            final IPCMessageHandler ipcMessageHandler = new IPCMessageHandler();
+            jobProcessor.setIpcMessageHandler(ipcMessageHandler);
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, -1);
+            IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
+            ipcSocketProcessor.execute();
+            ipcSocketProcessor.startMessageDispatcher();
         }
     }
 

@@ -8,6 +8,10 @@ public class Link {
 
     private StrategyType strategyType;
 
+    public Link() {
+        // no-args constructor
+    }
+
     public Link(final String url, final String filename, final StrategyType strategyType) {
         this.url = url;
         this.filename = filename;

@@ -47,7 +47,11 @@ public class AdvancedJobRunnerImpl {
             @Override
             public void run() {
                 LOGGER.info("Running consumer thread for Advanced Job Runner");
-                while(jobsToProcess > 0) {
+                // if the jobsToProcess is set to -1, then this needs to run infinitely to process new links via the sockets.
+                // otherwise if the jobsToProcesss is set to a number greater than 1 (i.e. the number of links), then it processes
+                // the links as normal and then stops when the jobsToProcess is set to 0.
+                boolean numOfJobsToProcess = jobsToProcess <= -1 ? true : jobsToProcess > 0;
+                while(numOfJobsToProcess) {
                     if (queue.size() > 0) {
                         try {
                             final Link link = queue.poll();

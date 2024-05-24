@@ -19,7 +19,7 @@ public class Main {
         switch(args[0]) {
             case "-i":
                 request.setOperation(Operation.INTERACTIVE);
-                request.setLink(new Link(args[1], args[2], StrategyType.valueOf(args[3].toUpperCase())));
+                request.setLink(new Link(1, args[1], args[2], StrategyType.valueOf(args[3].toUpperCase())));
                 break;
             case "-t":
                 request.setOperation(Operation.VIEW_CONFIG);

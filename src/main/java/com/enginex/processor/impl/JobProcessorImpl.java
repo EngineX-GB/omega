@@ -37,7 +37,7 @@ public class JobProcessorImpl implements JobProcessor {
         final List<Strategy> strategyList = new ArrayList<>();
         for (final Link link : links) {
             if (link.getStrategyType() == StrategyType.MULTI_FILE) {
-                strategyList.add(new MultiFileStrategy(link.getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), link.getFilename(),
+                strategyList.add(new MultiFileStrategy(link, System.getProperty("temp.path") + "/" + UUID.randomUUID(),
                         downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, ipcMessageHandler));
             } else {
                 strategyList.add(new SingleFileStrategy(downloadProcessor, link.getUrl(), link.getFilename()));

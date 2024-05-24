@@ -34,7 +34,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
                 final Optional<String> url = retrieveUrl(link);
                 if (url.isPresent()){
                     auditService.update(link);
-                    newLinks.add(new Link(url.get(), link.getFilename(), link.getStrategyType()));
+                    newLinks.add(new Link(link.getNumber(), url.get(), link.getFilename(), link.getStrategyType()));
                 }
             } else {
                 LOGGER.warn("Audit Service Response for :  {} ->. {}", link.getFilename(), responseCode.name());
@@ -50,7 +50,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
             final Optional<String> url = retrieveUrl(link);
             if (url.isPresent()) {
                 auditService.update(link);
-                return new Link(url.get(), link.getFilename(), link.getStrategyType());
+                return new Link(link.getNumber(), url.get(), link.getFilename(), link.getStrategyType());
             }
         }
         else {

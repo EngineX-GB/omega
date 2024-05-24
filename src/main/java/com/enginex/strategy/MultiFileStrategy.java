@@ -1,6 +1,7 @@
 package com.enginex.strategy;
 
 import com.enginex.handler.IPCMessageHandler;
+import com.enginex.model.Link;
 import com.enginex.processor.CleanupProcessor;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.processor.FileAggregationProcessor;
@@ -17,7 +18,6 @@ public class MultiFileStrategy implements Strategy {
 
     static final Integer MAX_FILE_SIZE = 2000;
 
-    final String url;
     final String directory;
     private final DownloadProcessor downloadProcessor;
     private final FileAggregationProcessor aggregationProcessor;
@@ -25,18 +25,17 @@ public class MultiFileStrategy implements Strategy {
     private final SystemProcessor systemProcessor;
     private final IPCMessageHandler ipcMessageHandler;
 
-    private String filename;
+    private Link link;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiFileStrategy.class);
 
     static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.ts");
-    public MultiFileStrategy(final String url, String directory, String filename, final DownloadProcessor downloadProcessor,
+    public MultiFileStrategy(final Link link, String directory, final DownloadProcessor downloadProcessor,
                              final FileAggregationProcessor aggregationProcessor,
                              final CleanupProcessor cleanupProcessor, final SystemProcessor systemProcessor,
                              final IPCMessageHandler ipcMessageHandler) {
-        this.url = url;
+        this.link = link;
         this.directory = directory;
-        this.filename = filename;
         this.downloadProcessor = downloadProcessor;
         this.aggregationProcessor = aggregationProcessor;
         this.cleanupProcessor = cleanupProcessor;
@@ -48,12 +47,12 @@ public class MultiFileStrategy implements Strategy {
     public void start() throws Exception {
         final String libraryDirectory = System.getProperty("library.path");
         systemProcessor.createDirectory(directory);
-        Matcher matcher = pattern.matcher(url);
+        Matcher matcher = pattern.matcher(link.getUrl());
         if (matcher.find()) {
-            LOGGER.info("Start downloading : " + filename);
-            AppUtil.dispatchMessage(ipcMessageHandler, "Downloading file : " + filename);
+            LOGGER.info("Start downloading [{}] : {}", link.getNumber(), link.getFilename());
+            AppUtil.dispatchMessage(ipcMessageHandler, "Downloading file : " + link.getFilename());
             final String templateFilename = matcher.group(0).replace(matcher.group(1), "-{d}-");
-            final String templateUrl = url.replace(matcher.group(0), templateFilename);
+            final String templateUrl = link.getUrl().replace(matcher.group(0), templateFilename);
             // now download the files in numerical order
             for (int i = 1; i < MAX_FILE_SIZE; i++ ) {
                 try {
@@ -63,10 +62,10 @@ public class MultiFileStrategy implements Strategy {
                     break;
                 }
             }
-            Boolean aggregationResult = aggregationProcessor.aggregate(directory, libraryDirectory, filename);
-            AppUtil.dispatchMessage(ipcMessageHandler, "Aggregating files for " + filename);
+            Boolean aggregationResult = aggregationProcessor.aggregate(directory, libraryDirectory, link);
+            AppUtil.dispatchMessage(ipcMessageHandler, "Aggregating files for " + link.getFilename());
             if (aggregationResult) {
-                cleanupProcessor.cleanup(directory);
+                cleanupProcessor.cleanup(directory, link);
             }
         }
     }

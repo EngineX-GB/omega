@@ -8,11 +8,14 @@ public class Link {
 
     private StrategyType strategyType;
 
+    private int number;
+
     public Link() {
         // no-args constructor
     }
 
-    public Link(final String url, final String filename, final StrategyType strategyType) {
+    public Link(final int number, final String url, final String filename, final StrategyType strategyType) {
+        this.number = number;
         this.url = url;
         this.filename = filename;
         this.strategyType = strategyType;
@@ -41,5 +44,14 @@ public class Link {
     public void setStrategyType(StrategyType strategyType) {
         this.strategyType = strategyType;
     }
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
 
 }

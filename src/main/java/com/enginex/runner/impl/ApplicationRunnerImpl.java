@@ -83,7 +83,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
                 strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
             } else {
-                strategy = new MultiFileStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
+                strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }
             jobRunner.run(Arrays.asList(strategy));
         }
@@ -108,6 +108,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
             //TODO: Experimental code
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            LOGGER.info("Downloading {} links", links.size());
             final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
             advancedJobRunner.start();
             for (final Link discoveryLink : links) {

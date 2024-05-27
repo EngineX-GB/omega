@@ -50,7 +50,7 @@ public class MultiFileStrategy implements Strategy {
         Matcher matcher = pattern.matcher(link.getUrl());
         if (matcher.find()) {
             LOGGER.info("Start downloading [{}] : {}", link.getNumber(), link.getFilename());
-            AppUtil.dispatchMessage(ipcMessageHandler, "Downloading file : " + link.getFilename());
+            AppUtil.dispatchMessage(ipcMessageHandler, link, "DOWNLOADING");
             final String templateFilename = matcher.group(0).replace(matcher.group(1), "-{d}-");
             final String templateUrl = link.getUrl().replace(matcher.group(0), templateFilename);
             // now download the files in numerical order
@@ -62,9 +62,10 @@ public class MultiFileStrategy implements Strategy {
                     break;
                 }
             }
+            AppUtil.dispatchMessage(ipcMessageHandler, link, "AGGREGATING");
             Boolean aggregationResult = aggregationProcessor.aggregate(directory, libraryDirectory, link);
-            AppUtil.dispatchMessage(ipcMessageHandler, "Aggregating files for " + link.getFilename());
             if (aggregationResult) {
+                AppUtil.dispatchMessage(ipcMessageHandler, link, "FINALISING");
                 cleanupProcessor.cleanup(directory, link);
             }
         }

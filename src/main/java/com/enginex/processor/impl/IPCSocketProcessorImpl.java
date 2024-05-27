@@ -1,12 +1,11 @@
 package com.enginex.processor.impl;
 
 import com.enginex.handler.IPCMessageHandler;
+import com.enginex.model.EnrichedLink;
 import com.enginex.model.Link;
-import com.enginex.model.SocketMessage;
 import com.enginex.processor.DiscoveryProcessor;
 import com.enginex.processor.IPCSocketProcessor;
 import com.enginex.runner.AdvancedJobRunnerImpl;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 
 public class IPCSocketProcessorImpl implements IPCSocketProcessor {
@@ -26,6 +24,7 @@ public class IPCSocketProcessorImpl implements IPCSocketProcessor {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static ServerSocket serverSocket;
+
     private static final int PORT = 9876;
 
     private AdvancedJobRunnerImpl advancedJobRunner;
@@ -98,19 +97,22 @@ public class IPCSocketProcessorImpl implements IPCSocketProcessor {
 
 
     private Link getLink(final String message) throws JsonProcessingException {
-        final SocketMessage socketMessage = MAPPER.readValue(message, SocketMessage.class);
-        return socketMessage.getLink();
+        final EnrichedLink enrichedLink = MAPPER.readValue(message, EnrichedLink.class);
+        return enrichedLink;
     }
 
     private void process(final Link discoveryLink) {
+        final EnrichedLink updatedMessage = EnrichedLink.of(((EnrichedLink) discoveryLink), "DISCOVERING");
         try {
-            ipcMessageHandler.getIpcMessageQueue().put("Discovering link");
+            final String json = MAPPER.writeValueAsString(updatedMessage);
+            ipcMessageHandler.getIpcMessageQueue().put(json);
         } catch(Exception e) {
             e.printStackTrace();
         }
         final Link link = discoveryProcessor.discover(discoveryLink);
+        final EnrichedLink enrichedLink = EnrichedLink.of(updatedMessage, link.getUrl(), "DISCOVERED");
         if (link != null) {
-            advancedJobRunner.publish(link);
+            advancedJobRunner.publish(enrichedLink);
         }
     }
 

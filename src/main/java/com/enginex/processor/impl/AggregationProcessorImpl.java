@@ -1,5 +1,6 @@
 package com.enginex.processor.impl;
 
+import com.enginex.model.Link;
 import com.enginex.model.ProcessResult;
 import com.enginex.processor.FileAggregationProcessor;
 
@@ -17,12 +18,14 @@ import org.slf4j.LoggerFactory;
 public class AggregationProcessorImpl implements FileAggregationProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregationProcessorImpl.class);
+
     @Override
-    public Boolean aggregate(String directory, String libraryDirectory, String filename) throws Exception {
-        LOGGER.info("Aggregating the data");
+    public Boolean aggregate(String directory, String libraryDirectory, Link link) throws Exception {
+        LOGGER.info("Aggregating the data [{}]", link.getNumber());
         generateManifestFile(directory);
+        createSubdirectory(libraryDirectory, link.getFilename());
         String ffMpegPath = System.getProperty("ffmpeg.path");
-        String[] cmdArgs = {"cmd", "/c", ffMpegPath + "/ffmpeg.exe -nostats -loglevel 0 -f concat -i list.txt -c copy " + libraryDirectory + "/" + filename +".mp4"};
+        String[] cmdArgs = {"cmd", "/c", ffMpegPath + "/ffmpeg.exe -nostats -loglevel 0 -f concat -i list.txt -c copy " + libraryDirectory + "/" + link.getFilename() +".mp4"};
         final ProcessResult res = runProcess(cmdArgs, directory);
         return res.getReturnCode() == 0 ? true : false;
     }
@@ -55,5 +58,22 @@ public class AggregationProcessorImpl implements FileAggregationProcessor {
 
         Path listFilePath = directory.resolve(directoryPath + "/list.txt");
         Files.write(listFilePath, fileNames);
+    }
+
+    private void createSubdirectory(String libraryDirectory, String filename) throws Exception {
+        // if the filename in the feed file contains a forward slash, then it means that subdirectories need to be
+        // created within the library directory. Check this and then create them if needed
+        try {
+            String newFolderPath;
+            if (filename.lastIndexOf("\\") != -1) {
+                newFolderPath = libraryDirectory.concat("/").concat(filename.substring(0, filename.lastIndexOf("\\")));
+                LOGGER.info("Creating subdirectory : {}", newFolderPath);
+                Path newFolder = Paths.get(newFolderPath);
+                Files.createDirectories(newFolder);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

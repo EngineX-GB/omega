@@ -1,5 +1,6 @@
 package com.enginex.runner.impl;
 
+import com.enginex.handler.IPCMessageHandler;
 import com.enginex.model.*;
 import com.enginex.processor.*;
 import com.enginex.processor.impl.*;
@@ -7,7 +8,9 @@ import com.enginex.runner.AdvancedJobRunnerImpl;
 import com.enginex.runner.ApplicationRunner;
 import com.enginex.runner.JobRunner;
 import com.enginex.runner.JobRunnerImpl;
+import com.enginex.service.AuditService;
 import com.enginex.service.DiscoveryService;
+import com.enginex.service.impl.AuditServiceImpl;
 import com.enginex.service.impl.DiscoveryServiceImpl;
 import com.enginex.strategy.SingleFileStrategy;
 import com.enginex.strategy.MultiFileStrategy;
@@ -37,6 +40,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         final SystemProcessor systemProcessor;
         final JobProcessor jobProcessor;
         final DiscoveryService discoveryService;
+        final AuditService auditService;
         final DiscoveryProcessor discoveryProcessor;
         final JobRunner jobRunner = new JobRunnerImpl(JobRunnerMode.CONCURRENT);
 
@@ -46,7 +50,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
             discoveryService = new DiscoveryServiceImpl();
-            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
+            auditService = new AuditServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService, auditService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
         } else if (MODE == SystemMode.DEV){
             aggregationProcessor = new AggregationProcessorImpl();
@@ -54,7 +59,8 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             downloadProcessor = new DownloadProcessorImpl();
             systemProcessor = new SystemProcessorImpl();
             discoveryService = new DiscoveryServiceImpl();
-            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService);
+            auditService = new AuditServiceImpl();
+            discoveryProcessor = new DiscoveryProcessorImpl(discoveryService, auditService);
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
             System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");
@@ -77,7 +83,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
                 strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
             } else {
-                strategy = new MultiFileStrategy(request.getLink().getUrl(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), request.getLink().getFilename(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor);
+                strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }
             jobRunner.run(Arrays.asList(strategy));
         }
@@ -102,6 +108,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
             //TODO: Experimental code
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            LOGGER.info("Downloading {} links", links.size());
             final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
             advancedJobRunner.start();
             for (final Link discoveryLink : links) {
@@ -110,6 +117,15 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                     advancedJobRunner.publish(link);
                 }
             }
+        }
+        else if (request.getOperation() == Operation.IPC) {
+            //for the IPC operation, set the ipcMessageHandler to the jobProcessor
+            final IPCMessageHandler ipcMessageHandler = new IPCMessageHandler();
+            jobProcessor.setIpcMessageHandler(ipcMessageHandler);
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, -1);
+            IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
+            ipcSocketProcessor.execute();
+            ipcSocketProcessor.startMessageDispatcher();
         }
     }
 

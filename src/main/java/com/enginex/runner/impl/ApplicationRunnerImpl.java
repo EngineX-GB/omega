@@ -21,9 +21,12 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
 
@@ -116,6 +119,37 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                 if (link != null) {
                     advancedJobRunner.publish(link);
                 }
+            }
+        }
+        else if (request.getOperation() == Operation.EXPERIMENTAL) {
+            LOGGER.warn("**** EXPERIMENTAL MODE ****");
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+
+            final List<Link> nonDuplicatedLinks = new ArrayList<>();
+            for (final Link discoveryLink : links) {
+                final Link link = discoveryProcessor.verifyDuplicateLink(discoveryLink);
+                if (link != null) {
+                    nonDuplicatedLinks.add(link);
+                }
+            }
+
+            if (nonDuplicatedLinks.size() > 0) {
+                LOGGER.info("Downloading {} links", links.size());
+                final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, nonDuplicatedLinks.size());
+                advancedJobRunner.start();
+
+                final ExecutorService executorService = Executors.newFixedThreadPool(5);
+                for (final Link discoveryLink : links) {
+                    executorService.submit(() -> {
+                        final Link link = discoveryProcessor.discover(discoveryLink);
+                        if (link!= null) {
+                            advancedJobRunner.publish(link);
+                        }
+                    });
+                }
+            }
+            else {
+                LOGGER.warn("All links are considered duplicates. Exiting...");
             }
         }
         else if (request.getOperation() == Operation.IPC) {

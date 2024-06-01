@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class AdvancedJobRunnerImpl {
 
@@ -43,15 +40,16 @@ public class AdvancedJobRunnerImpl {
     }
 
     public void start() {
-        executorService.submit(new Runnable() {
+        final CountDownLatch countDownLatch = new CountDownLatch(jobsToProcess);
+        executorService.submit(new Callable() {
             @Override
-            public void run() {
+            public String call() {
                 LOGGER.info("Running consumer thread for Advanced Job Runner");
                 // if the jobsToProcess is set to -1, then this needs to run infinitely to process new links via the sockets.
                 // otherwise if the jobsToProcesss is set to a number greater than 1 (i.e. the number of links), then it processes
                 // the links as normal and then stops when the jobsToProcess is set to 0.
-                boolean numOfJobsToProcess = jobsToProcess <= -1 ? true : jobsToProcess > 0;
-                while(numOfJobsToProcess) {
+                boolean infiniteRun = jobsToProcess <= -1 ? true : false;
+                while(infiniteRun || jobsToProcess > 0) {
                     if (queue.size() > 0) {
                         try {
                             final Link link = queue.poll();
@@ -64,9 +62,20 @@ public class AdvancedJobRunnerImpl {
                     }
                 }
                 LOGGER.info("Completed all tasks....");
-                jobRunner.stop();
+
+                //jobRunner.stop();
+                return "done";
             }
         });
+    }
+
+    public void stop() {
+        if (jobRunner != null) {
+            jobRunner.stop();
+        }
+        if (executorService != null) {
+            executorService.shutdown();
+        }
     }
 
 }

@@ -51,6 +51,7 @@ public class JobRunnerImpl implements JobRunner {
     public void stop() {
         if (executorService != null) {
             executorService.shutdown();
+            System.out.println("shutdown = "+ executorService.isShutdown()+ ", terminated = "+ executorService.isTerminated());
         }
     }
 }

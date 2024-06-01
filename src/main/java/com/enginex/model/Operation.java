@@ -6,6 +6,7 @@ public enum Operation {
     VIEW_CONFIG,
     DISCOVER_AND_BATCH,
     CONCURRENT_DISCOVER_AND_BATCH,
-    IPC
+    IPC,
+    EXPERIMENTAL
 }
 

@@ -36,6 +36,10 @@ public class Main {
                 request.setOperation(Operation.CONCURRENT_DISCOVER_AND_BATCH);
                 request.setInputFilePath(args[1]);
                 break;
+            case "-e":
+                request.setOperation(Operation.EXPERIMENTAL);
+                request.setInputFilePath(args[1]);
+                break;
             case "-g":
                 request.setOperation(Operation.IPC);
                 break;

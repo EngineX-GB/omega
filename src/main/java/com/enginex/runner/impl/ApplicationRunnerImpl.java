@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
 
@@ -81,47 +82,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         }
         initialise();
-        if (request.getOperation() == Operation.INTERACTIVE) {
-            final Strategy strategy;
-            if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
-                strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
-            } else {
-                strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
-            }
-            jobRunner.run(Arrays.asList(strategy));
-        }
-        else if (request.getOperation() == Operation.BATCH) {
-            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-            final List<Strategy> strategyList = jobProcessor.generateStrategies(links);
-            jobRunner.run(strategyList);
-        }
-        else if (request.getOperation() == Operation.VIEW_CONFIG) {
-            LOGGER.info("Mode : " + MODE);
-            LOGGER.info("library.path : " + System.getProperty("library.path"));
-            LOGGER.info("temp.path : " + System.getProperty("temp.path"));
-            LOGGER.info("ffmpeg.path : " + System.getProperty("ffmpeg.path"));
-            System.exit(0);
-        }
-        else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {
-            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-            final List<Link> resolvedLinks = discoveryProcessor.discover(links);
-            final List<Strategy> strategyList = jobProcessor.generateStrategies(resolvedLinks);
-            jobRunner.run(strategyList);
-        }
-        else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
-            //TODO: Experimental code
-            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-            LOGGER.info("Downloading {} links", links.size());
-            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
-            advancedJobRunner.start();
-            for (final Link discoveryLink : links) {
-                final Link link = discoveryProcessor.discover(discoveryLink);
-                if (link != null) {
-                    advancedJobRunner.publish(link);
-                }
-            }
-        }
-        else if (request.getOperation() == Operation.EXPERIMENTAL) {
+        if (request.getOperation() == Operation.EXPERIMENTAL) {
             LOGGER.warn("**** EXPERIMENTAL MODE ****");
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
 
@@ -132,34 +93,36 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                     nonDuplicatedLinks.add(link);
                 }
             }
-
             if (nonDuplicatedLinks.size() > 0) {
                 LOGGER.info("Downloading {} links", links.size());
                 final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, nonDuplicatedLinks.size());
-                advancedJobRunner.start();
-
+                Future<String> exec = advancedJobRunner.start();
                 final ExecutorService executorService = Executors.newFixedThreadPool(5);
-                for (final Link discoveryLink : links) {
-                    executorService.submit(() -> {
-                        final Link link = discoveryProcessor.discover(discoveryLink);
+                List<Future<String>> futures = new ArrayList<>();
+                for (final Link link : links) {
+                    Future<String> result = executorService.submit(() -> {
                         if (link!= null) {
-                            advancedJobRunner.publish(link);
+                            System.out.println("Perform discovery for link : " + link.getFilename());
+                            final Link discoveredLink = discoveryProcessor.discover(link);
+                            if (link != null) {
+                                advancedJobRunner.publish(discoveredLink);
+                            }
                         }
+                        System.out.println("test");
+                        return "done";
                     });
+                    futures.add(result);
                 }
+                System.out.println("Waiting");
+                for (Future<String> f : futures) {
+                    System.out.println("Future result = "+f.get());
+                }
+                System.out.println("End");
+                executorService.shutdown();
             }
             else {
                 LOGGER.warn("All links are considered duplicates. Exiting...");
             }
-        }
-        else if (request.getOperation() == Operation.IPC) {
-            //for the IPC operation, set the ipcMessageHandler to the jobProcessor
-            final IPCMessageHandler ipcMessageHandler = new IPCMessageHandler();
-            jobProcessor.setIpcMessageHandler(ipcMessageHandler);
-            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, -1);
-            IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
-            ipcSocketProcessor.execute();
-            ipcSocketProcessor.startMessageDispatcher();
         }
     }
 

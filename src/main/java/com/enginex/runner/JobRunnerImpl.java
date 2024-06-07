@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JobRunnerImpl implements JobRunner {
 
@@ -37,7 +38,7 @@ public class JobRunnerImpl implements JobRunner {
         executorService.shutdown();
     }
 
-    public void run(final Strategy strategy) {
+    public void run(final Strategy strategy, final AtomicInteger counter) {
         executorService.submit(() -> {
             try {
                 strategy.start();
@@ -45,6 +46,11 @@ public class JobRunnerImpl implements JobRunner {
                 throw new RuntimeException(e);
             }
         });
+        counter.decrementAndGet();
+        if (counter.get() == 0) {
+            LOGGER.info("Counter is set to {}. Sending signal to shutdown the executor service in JobRunnerImpl", counter.get());
+            stop();
+        }
     }
 
     @Override

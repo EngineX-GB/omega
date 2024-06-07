@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AdvancedJobRunnerImpl {
 
@@ -39,11 +40,11 @@ public class AdvancedJobRunnerImpl {
         }
     }
 
-    public void start() {
-        final CountDownLatch countDownLatch = new CountDownLatch(jobsToProcess);
-        executorService.submit(new Callable() {
+    public Future<String> start() {
+        Future<String> exec = executorService.submit(new Callable() {
             @Override
             public String call() {
+                final AtomicInteger counter = new AtomicInteger(jobsToProcess);
                 LOGGER.info("Running consumer thread for Advanced Job Runner");
                 // if the jobsToProcess is set to -1, then this needs to run infinitely to process new links via the sockets.
                 // otherwise if the jobsToProcesss is set to a number greater than 1 (i.e. the number of links), then it processes
@@ -54,7 +55,7 @@ public class AdvancedJobRunnerImpl {
                         try {
                             final Link link = queue.poll();
                             final List<Strategy> strategyList = jobProcessor.generateStrategies(Arrays.asList(link));
-                            jobRunner.run(strategyList.get(0));
+                            jobRunner.run(strategyList.get(0), counter);
                             jobsToProcess--;
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -63,16 +64,28 @@ public class AdvancedJobRunnerImpl {
                 }
                 LOGGER.info("Completed all tasks....");
 
+                // TODO: These are part of the issue
+                //jobRunner.stop();
+                //stop();
+                executorService.shutdown();
+
                 //jobRunner.stop();
                 return "done";
             }
         });
+        return exec;
     }
 
     public void stop() {
         if (jobRunner != null) {
             jobRunner.stop();
         }
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
+
+    public void stopRunner() {
         if (executorService != null) {
             executorService.shutdown();
         }

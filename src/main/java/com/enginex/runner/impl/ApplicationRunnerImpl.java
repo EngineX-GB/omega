@@ -102,22 +102,20 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                 for (final Link link : links) {
                     Future<String> result = executorService.submit(() -> {
                         if (link!= null) {
-                            System.out.println("Perform discovery for link : " + link.getFilename());
+                            LOGGER.info("Perform discovery for link : {}", link.getFilename());
                             final Link discoveredLink = discoveryProcessor.discover(link);
-                            if (link != null) {
+                            if (discoveredLink != null) {
                                 advancedJobRunner.publish(discoveredLink);
                             }
                         }
-                        System.out.println("test");
                         return "done";
                     });
                     futures.add(result);
                 }
-                System.out.println("Waiting");
                 for (Future<String> f : futures) {
                     System.out.println("Future result = "+f.get());
                 }
-                System.out.println("End");
+                LOGGER.info("Finished discovery process thread.");
                 executorService.shutdown();
             }
             else {

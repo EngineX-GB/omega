@@ -63,13 +63,7 @@ public class AdvancedJobRunnerImpl {
                     }
                 }
                 LOGGER.info("Completed all tasks....");
-
-                // TODO: These are part of the issue
-                //jobRunner.stop();
-                //stop();
                 executorService.shutdown();
-
-                //jobRunner.stop();
                 return "done";
             }
         });

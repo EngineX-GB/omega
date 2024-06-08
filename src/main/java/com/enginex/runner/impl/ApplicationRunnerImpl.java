@@ -82,7 +82,56 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         }
         initialise();
-        if (request.getOperation() == Operation.EXPERIMENTAL) {
+        if (request.getOperation() == Operation.INTERACTIVE) {
+            final Strategy strategy;
+            if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
+                strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
+            } else {
+                strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
+            }
+            jobRunner.run(Arrays.asList(strategy));
+        }
+        else if (request.getOperation() == Operation.BATCH) {
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            final List<Strategy> strategyList = jobProcessor.generateStrategies(links);
+            jobRunner.run(strategyList);
+        }
+        else if (request.getOperation() == Operation.VIEW_CONFIG) {
+            LOGGER.info("Mode : " + MODE);
+            LOGGER.info("library.path : " + System.getProperty("library.path"));
+            LOGGER.info("temp.path : " + System.getProperty("temp.path"));
+            LOGGER.info("ffmpeg.path : " + System.getProperty("ffmpeg.path"));
+            System.exit(0);
+        }
+        else if (request.getOperation() == Operation.DISCOVER_AND_BATCH) {
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            final List<Link> resolvedLinks = discoveryProcessor.discover(links);
+            final List<Strategy> strategyList = jobProcessor.generateStrategies(resolvedLinks);
+            jobRunner.run(strategyList);
+        }
+        else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
+            //TODO: Experimental code
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            LOGGER.info("Downloading {} links", links.size());
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
+            advancedJobRunner.start();
+            for (final Link discoveryLink : links) {
+                final Link link = discoveryProcessor.discover(discoveryLink);
+                if (link != null) {
+                    advancedJobRunner.publish(link);
+                }
+            }
+        }
+        else if (request.getOperation() == Operation.IPC) {
+            //for the IPC operation, set the ipcMessageHandler to the jobProcessor
+            final IPCMessageHandler ipcMessageHandler = new IPCMessageHandler();
+            jobProcessor.setIpcMessageHandler(ipcMessageHandler);
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, -1);
+            IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
+            ipcSocketProcessor.execute();
+            ipcSocketProcessor.startMessageDispatcher();
+        }
+        else if (request.getOperation() == Operation.EXPERIMENTAL) {
             LOGGER.warn("**** EXPERIMENTAL MODE ****");
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
 

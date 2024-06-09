@@ -7,6 +7,7 @@ public enum Operation {
     DISCOVER_AND_BATCH,
     CONCURRENT_DISCOVER_AND_BATCH,
     IPC,
-    EXPERIMENTAL
+    EXPERIMENTAL,
+    AUDIT
 }
 

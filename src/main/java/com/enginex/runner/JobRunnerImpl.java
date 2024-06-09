@@ -47,6 +47,7 @@ public class JobRunnerImpl implements JobRunner {
             }
         });
         counter.decrementAndGet();
+        System.out.println("****** REMAINING COUNTER VALUE = " + counter + " ******");
         if (counter.get() == 0) {
             LOGGER.info("Counter is set to {}. Sending signal to shutdown the executor service in JobRunnerImpl", counter.get());
             stop();

@@ -76,12 +76,14 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             systemProcessor = new NoOpSystemProcessorImpl();
             discoveryService = null; // TODO: Add no-op implementation
             discoveryProcessor = null; //TODO: Add no-op implementation
+            auditService = null;
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
             System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");
             System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         }
         initialise();
+
         if (request.getOperation() == Operation.INTERACTIVE) {
             final Strategy strategy;
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
@@ -90,6 +92,17 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                 strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }
             jobRunner.run(Arrays.asList(strategy));
+        }
+        else if (request.getOperation() == Operation.AUDIT) {
+            int newLinkCounter = 0;
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            for (final Link link : links) {
+                if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+                    LOGGER.info("New link : {} --> {}", link.getUrl(), link.getFilename());
+                    newLinkCounter++;
+                }
+            }
+            LOGGER.info("New links detected: {}", newLinkCounter);
         }
         else if (request.getOperation() == Operation.BATCH) {
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
@@ -134,7 +147,6 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         else if (request.getOperation() == Operation.EXPERIMENTAL) {
             LOGGER.warn("**** EXPERIMENTAL MODE ****");
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-
             final List<Link> nonDuplicatedLinks = new ArrayList<>();
             for (final Link discoveryLink : links) {
                 final Link link = discoveryProcessor.verifyDuplicateLink(discoveryLink);

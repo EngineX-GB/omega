@@ -21,9 +21,13 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class ApplicationRunnerImpl implements ApplicationRunner {
 
@@ -72,12 +76,14 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             systemProcessor = new NoOpSystemProcessorImpl();
             discoveryService = null; // TODO: Add no-op implementation
             discoveryProcessor = null; //TODO: Add no-op implementation
+            auditService = null;
             jobProcessor = new JobProcessorImpl(aggregationProcessor, cleanupProcessor, systemProcessor, downloadProcessor);
             System.setProperty("temp.path", System.getProperty("user.dir") + "/Desktop/omega/temp");
             System.setProperty("library.path", System.getProperty("user.dir") + "/Desktop/omega/library");
             System.setProperty("ffmpeg.path", System.getProperty("user.dir") + "/desktop/ffmpeg-master-latest-win64-gpl/bin");
         }
         initialise();
+
         if (request.getOperation() == Operation.INTERACTIVE) {
             final Strategy strategy;
             if (request.getLink().getStrategyType() == StrategyType.SINGLE) {
@@ -86,6 +92,17 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
                 strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }
             jobRunner.run(Arrays.asList(strategy));
+        }
+        else if (request.getOperation() == Operation.AUDIT) {
+            int newLinkCounter = 0;
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            for (final Link link : links) {
+                if (auditService.isDuplicate(link) != AuditResponseCode.DUPLICATE) {
+                    LOGGER.info("New link : {} --> {}", link.getUrl(), link.getFilename());
+                    newLinkCounter++;
+                }
+            }
+            LOGGER.info("New links detected: {}", newLinkCounter);
         }
         else if (request.getOperation() == Operation.BATCH) {
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
@@ -126,6 +143,45 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
             ipcSocketProcessor.execute();
             ipcSocketProcessor.startMessageDispatcher();
+        }
+        else if (request.getOperation() == Operation.EXPERIMENTAL) {
+            LOGGER.warn("**** EXPERIMENTAL MODE ****");
+            final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
+            final List<Link> nonDuplicatedLinks = new ArrayList<>();
+            for (final Link discoveryLink : links) {
+                final Link link = discoveryProcessor.verifyDuplicateLink(discoveryLink);
+                if (link != null) {
+                    nonDuplicatedLinks.add(link);
+                }
+            }
+            if (nonDuplicatedLinks.size() > 0) {
+                LOGGER.info("Downloading {} links", links.size());
+                final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, nonDuplicatedLinks.size());
+                Future<String> exec = advancedJobRunner.start();
+                final ExecutorService executorService = Executors.newFixedThreadPool(5);
+                List<Future<String>> futures = new ArrayList<>();
+                for (final Link link : links) {
+                    Future<String> result = executorService.submit(() -> {
+                        if (link!= null) {
+                            LOGGER.info("Perform discovery for link : {}", link.getFilename());
+                            final Link discoveredLink = discoveryProcessor.discover(link);
+                            if (discoveredLink != null) {
+                                advancedJobRunner.publish(discoveredLink);
+                            }
+                        }
+                        return "done";
+                    });
+                    futures.add(result);
+                }
+                for (Future<String> f : futures) {
+                    System.out.println("Future result = "+f.get());
+                }
+                LOGGER.info("Finished discovery process thread.");
+                executorService.shutdown();
+            }
+            else {
+                LOGGER.warn("All links are considered duplicates. Exiting...");
+            }
         }
     }
 

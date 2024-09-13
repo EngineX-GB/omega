@@ -59,6 +59,15 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
         return null;
     }
 
+    @Override
+    public Link verifyDuplicateLink(Link link) {
+        final AuditResponseCode responseCode = auditService.isDuplicate(link);
+        if (responseCode != AuditResponseCode.DUPLICATE) {
+            return link;
+        }
+        LOGGER.warn("Audit Service Response for :  {} ->. {}", link.getFilename(), responseCode.name());
+        return null;
+    }
 
 
     private Optional<String> retrieveUrl (final Link link) {

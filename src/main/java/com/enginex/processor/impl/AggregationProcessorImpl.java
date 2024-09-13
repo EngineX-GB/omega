@@ -29,6 +29,7 @@ public class AggregationProcessorImpl implements FileAggregationProcessor {
         final ProcessResult res = runProcess(cmdArgs, directory);
         return res.getReturnCode() == 0 ? true : false;
     }
+
     private ProcessResult runProcess(final String[] cmdArguments, String directory) throws Exception{
         final ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(cmdArguments);
@@ -74,6 +75,5 @@ public class AggregationProcessorImpl implements FileAggregationProcessor {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

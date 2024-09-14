@@ -29,7 +29,7 @@ public class MultiFileStrategy implements Strategy {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiFileStrategy.class);
 
-    static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.ts");
+    static final Pattern pattern = Pattern.compile("seg(\\-[0-9]+\\-)[a-z0-9\\-]+\\.(ts|m4s)");
     public MultiFileStrategy(final Link link, String directory, final DownloadProcessor downloadProcessor,
                              final FileAggregationProcessor aggregationProcessor,
                              final CleanupProcessor cleanupProcessor, final SystemProcessor systemProcessor,
@@ -52,11 +52,12 @@ public class MultiFileStrategy implements Strategy {
             LOGGER.info("Start downloading [{}] : {}", link.getNumber(), link.getFilename());
             AppUtil.dispatchMessage(ipcMessageHandler, link, "DOWNLOADING");
             final String templateFilename = matcher.group(0).replace(matcher.group(1), "-{d}-");
+            final String fileExtension = checkFileExtension(matcher.group(2));
             final String templateUrl = link.getUrl().replace(matcher.group(0), templateFilename);
             // now download the files in numerical order
             for (int i = 1; i < MAX_FILE_SIZE; i++ ) {
                 try {
-                    downloadProcessor.download(templateUrl.replace("{d}", String.valueOf(i)), generateOutputFileName(directory, i));
+                    downloadProcessor.download(templateUrl.replace("{d}", String.valueOf(i)), generateOutputFileName(directory, i, fileExtension));
                 } catch (IOException e) {
                     LOGGER.warn(e.getMessage() +". Breaking loop");
                     break;
@@ -71,8 +72,16 @@ public class MultiFileStrategy implements Strategy {
         }
     }
 
-    private String generateOutputFileName(final String directory, final int clipNumber) {
-        return new StringBuffer().append(directory).append("/").append(numericalOutputLabelling(clipNumber)).append(clipNumber).append(".ts").toString();
+    private String generateOutputFileName(final String directory, final int clipNumber, final String fileExtension) {
+        return new StringBuffer().append(directory).append("/").append(numericalOutputLabelling(clipNumber)).append(clipNumber).append(fileExtension).toString();
+    }
+
+    private String checkFileExtension(final String fileExtension) {
+        if (fileExtension == null) {
+            LOGGER.warn("File Extension is null. Defaulting the extension to be .ts");
+            return ".ts";
+        }
+        return "." + fileExtension;
     }
 
     private String numericalOutputLabelling(int clipNumber) {

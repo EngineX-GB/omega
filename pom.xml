@@ -159,6 +159,8 @@
                                 <copy file="scripts/omegai.bat" tofile="${project.basedir}/build/assemble/omegai.bat" />
                                 <copy file="scripts/omegat.bat" tofile="${project.basedir}/build/assemble/omegat.bat" />
                                 <copy file="scripts/omegac.bat" tofile="${project.basedir}/build/assemble/omegac.bat" />
+                                <copy file="scripts/get-models.bat" tofile="${project.basedir}/build/assemble/get-models.bat" />
+                                <copy file="scripts/get-models.ps1" tofile="${project.basedir}/build/assemble/get-models.ps1" />
                                 <copy file="target/omega-${project.version}-jar-with-dependencies.jar"
                                       tofile="${project.basedir}/build/assemble/omega-${project.version}-jar-with-dependencies.jar" />
                                 <replace file="${project.basedir}/build/assemble/omegab.bat"

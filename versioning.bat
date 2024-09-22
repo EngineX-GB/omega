@@ -1,4 +1,4 @@
-call C:\Users\rm_82\Documents\setenv.bat
+call C:\Users\Dell\Documents\setenv.bat
 
 rem Set the release version
 call mvn build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} versions:commit

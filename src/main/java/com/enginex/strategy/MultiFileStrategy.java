@@ -59,7 +59,7 @@ public class MultiFileStrategy implements Strategy {
                 try {
                     downloadProcessor.download(templateUrl.replace("{d}", String.valueOf(i)), generateOutputFileName(directory, i, fileExtension));
                 } catch (IOException e) {
-                    LOGGER.warn(e.getMessage() +". Breaking loop");
+                    LOGGER.trace(e.getMessage() +". Breaking loop");
                     break;
                 }
             }

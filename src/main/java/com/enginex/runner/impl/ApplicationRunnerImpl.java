@@ -144,6 +144,9 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             ipcSocketProcessor.execute();
             ipcSocketProcessor.startMessageDispatcher();
         }
+        else if (request.getOperation() == Operation.AGGREGATE) {
+            aggregationProcessor.aggregate(request.getFolderPath(), System.getProperty("library.path"), request.getLink());
+        }
         else if (request.getOperation() == Operation.EXPERIMENTAL) {
             LOGGER.warn("**** EXPERIMENTAL MODE ****");
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());

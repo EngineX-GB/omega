@@ -8,6 +8,8 @@ public class Request {
 
     private Operation operation;
 
+    private String folderPath;
+
     public String getInputFilePath() {
         return inputFilePath;
     }
@@ -31,5 +33,14 @@ public class Request {
     public void setLink(Link link) {
         this.link = link;
     }
+
+    public String getFolderPath() {
+        return folderPath;
+    }
+
+    public void setFolderPath(String folderPath) {
+        this.folderPath = folderPath;
+    }
+
 
 }

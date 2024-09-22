@@ -22,12 +22,21 @@ public class AggregationProcessorImpl implements FileAggregationProcessor {
     @Override
     public Boolean aggregate(String directory, String libraryDirectory, Link link) throws Exception {
         LOGGER.info("Aggregating the data [{}]", link.getNumber());
+        validateDirectory(directory, libraryDirectory);
         generateManifestFile(directory);
         createSubdirectory(libraryDirectory, link.getFilename());
         String ffMpegPath = System.getProperty("ffmpeg.path");
         String[] cmdArgs = {"cmd", "/c", ffMpegPath + "/ffmpeg.exe -nostats -loglevel 0 -f concat -i list.txt -c copy " + libraryDirectory + "/" + link.getFilename() +".mp4"};
         final ProcessResult res = runProcess(cmdArgs, directory);
         return res.getReturnCode() == 0 ? true : false;
+    }
+
+    private void validateDirectory(final String directory, final String libraryDirectory) throws Exception {
+        final Path tempDirectoryPath = Paths.get(directory);
+        final Path libraryDirectoryPath = Paths.get(libraryDirectory);
+        if (tempDirectoryPath.equals(libraryDirectoryPath)) {
+            throw new Exception("Input folder path cannot be the same as the library path.");
+        }
     }
 
     private ProcessResult runProcess(final String[] cmdArguments, String directory) throws Exception{

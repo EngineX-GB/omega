@@ -1,8 +1,35 @@
+param([string]$JAVA_HOME, [string] $INSTALL_DIR)
 
-$JAVA_HOME = Read-Host("Enter the path to JDK_HOME")
-Write-Output($JAVA_HOME)
-$INSTALL_DIR = Read-Host("Enter installation path")
-Write-Output($INSTALL_DIR)
+if (-not $JAVA_HOME) {
+    $JAVA_HOME = Read-Host("Enter the path to JDK_HOME")
+    Write-Output($JAVA_HOME)
+
+    if (-not $JAVA_HOME) {
+        Write-Output "Java Path must be defined"
+        exit 1
+    }
+
+    if (-not(Test-Path -Path $JAVA_HOME -PathType Container)) {
+        Write-Output "$JAVA_HOME is not a valid directory path"
+        exit 1
+    }
+
+}
+if (-not $INSTALL_DIR) {
+    $INSTALL_DIR = Read-Host("Enter installation path")
+    Write-Output($INSTALL_DIR)
+
+    if (-not $INSTALL_HOME) {
+        Write-Output "Installation Path must be defined"
+        exit 1
+    }
+
+    if (-not(Test-Path -Path $INSTALL_DIR -PathType Container)) {
+        Write-Output "$INSTALL_DIR is not a valid directory path"
+        exit 1
+    }
+
+}
 
 
 Write-Output("Extracting files")

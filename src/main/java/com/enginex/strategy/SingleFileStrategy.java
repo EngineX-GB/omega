@@ -12,7 +12,6 @@ public class SingleFileStrategy implements Strategy{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileStrategy.class);
 
-    private static final String SINGLE_FILE_EXTENSION = ".mp4";
 
     public SingleFileStrategy(final DownloadProcessor downloadProcessor, final String url, final String outputFileName) {
         this.downloadProcessor = downloadProcessor;
@@ -24,7 +23,22 @@ public class SingleFileStrategy implements Strategy{
     public void start() throws Exception {
         final String libraryDirectory = System.getProperty("library.path");
         LOGGER.info("Start downloading : " + outputFileName);
-        downloadProcessor.download(url, libraryDirectory.concat("/").concat(outputFileName).concat(SINGLE_FILE_EXTENSION));
+        String extension = "";
+        final int indexOfQueryMark = url.lastIndexOf('?');
+        if (indexOfQueryMark != -1) {
+            final String urlWithoutQueryString = url.substring(0, indexOfQueryMark + 1);
+            final int indexOfPeriod = urlWithoutQueryString.lastIndexOf('.');
+            if (indexOfPeriod != -1) {
+                extension = urlWithoutQueryString.substring(indexOfPeriod, urlWithoutQueryString.length() -1);
+            }
+        }
+        else {
+            final int indexOfPeriod = url.lastIndexOf('.');
+            if (indexOfPeriod != -1) {
+                extension = url.substring(indexOfPeriod, url.length() -1);
+            }
+        }
+        downloadProcessor.download(url, libraryDirectory.concat("/").concat(outputFileName).concat(extension));
     }
 
 }

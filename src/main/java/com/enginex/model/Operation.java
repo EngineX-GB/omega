@@ -8,6 +8,7 @@ public enum Operation {
     CONCURRENT_DISCOVER_AND_BATCH,
     IPC,
     EXPERIMENTAL,
-    AUDIT
+    AUDIT,
+    AGGREGATE
 }
 

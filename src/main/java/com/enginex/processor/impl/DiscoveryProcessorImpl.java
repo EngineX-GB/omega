@@ -82,7 +82,7 @@ public class DiscoveryProcessorImpl implements DiscoveryProcessor {
                 return Optional.of(url);
             }
             numberOfRetries++;
-            LOGGER.info("Retrying " + numberOfRetries + " time(s) to get resolved link for " + link.getUrl());
+            LOGGER.info("Retrying " + numberOfRetries + " time(s) to get resolved link for [" +link.getNumber()+ "]: " + link.getUrl());
         }
         return Optional.empty();
     }

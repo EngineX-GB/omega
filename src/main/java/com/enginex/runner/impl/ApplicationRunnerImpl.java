@@ -125,10 +125,11 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         else if (request.getOperation() == Operation.CONCURRENT_DISCOVER_AND_BATCH) {
             //TODO: Experimental code
             final List<Link> links = systemProcessor.readInputFile(request.getInputFilePath());
-            LOGGER.info("Downloading {} links", links.size());
-            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, links.size());
+            final List<Link> nonDuplicatedLinks = extractNonDuplicateLinks(discoveryProcessor, links);
+            LOGGER.info("Downloading {} links", nonDuplicatedLinks.size());
+            final AdvancedJobRunnerImpl advancedJobRunner = new AdvancedJobRunnerImpl(jobProcessor, jobRunner, nonDuplicatedLinks.size());
             advancedJobRunner.start();
-            for (final Link discoveryLink : links) {
+            for (final Link discoveryLink : nonDuplicatedLinks) {
                 final Link link = discoveryProcessor.discover(discoveryLink);
                 if (link != null) {
                     advancedJobRunner.publish(link);
@@ -143,6 +144,9 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             IPCSocketProcessor ipcSocketProcessor = new IPCSocketProcessorImpl(advancedJobRunner, discoveryProcessor, ipcMessageHandler);
             ipcSocketProcessor.execute();
             ipcSocketProcessor.startMessageDispatcher();
+        }
+        else if (request.getOperation() == Operation.AGGREGATE) {
+            aggregationProcessor.aggregate(request.getFolderPath(), System.getProperty("library.path"), request.getLink());
         }
         else if (request.getOperation() == Operation.EXPERIMENTAL) {
             LOGGER.warn("**** EXPERIMENTAL MODE ****");
@@ -196,6 +200,17 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
             LOGGER.error("ffmpeg location cannot be found. Path specified is : [" + System.getProperty("ffmpeg.path") + "]");
             System.exit(1);
         }
+    }
+
+    private List<Link> extractNonDuplicateLinks(final DiscoveryProcessor discoveryProcessor, final List<Link> links) {
+        final List<Link> nonDuplicatedLinks = new ArrayList<>();
+        for (final Link discoveryLink : links) {
+            final Link link = discoveryProcessor.verifyDuplicateLink(discoveryLink);
+            if (link != null) {
+                nonDuplicatedLinks.add(link);
+            }
+        }
+        return nonDuplicatedLinks;
     }
 
 }

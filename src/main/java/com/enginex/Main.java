@@ -47,6 +47,11 @@ public class Main {
             case "-g":
                 request.setOperation(Operation.IPC);
                 break;
+            case "r":
+                request.setOperation(Operation.AGGREGATE);
+                request.setFolderPath(args[0]);
+                request.setLink(new Link(0, null, args[1], null));
+                break;
             default:
                 throw new Exception(String.format("Unknown Operation : %s", args[0]));
         }

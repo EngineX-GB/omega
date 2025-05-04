@@ -1,7 +1,5 @@
 package com.enginex.model;
 
 public enum StrategyType {
-
-    SINGLE, MULTI_FILE
-
+    SINGLE_FILE, MULTI_FILE
 }

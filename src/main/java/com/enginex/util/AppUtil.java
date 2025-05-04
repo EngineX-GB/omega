@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
 
 public final class AppUtil {
 
@@ -32,6 +33,10 @@ public final class AppUtil {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static DateTimeFormatter getDateTimeFormatter() {
+        return DateTimeFormatter.ofPattern("HH:mm:ss:SSS");
     }
 
 }

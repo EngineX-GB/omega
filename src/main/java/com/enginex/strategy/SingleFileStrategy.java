@@ -1,8 +1,13 @@
 package com.enginex.strategy;
 
 import com.enginex.processor.DownloadProcessor;
+import com.enginex.util.AppUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 public class SingleFileStrategy implements Strategy{
 
@@ -35,10 +40,20 @@ public class SingleFileStrategy implements Strategy{
         else {
             final int indexOfPeriod = url.lastIndexOf('.');
             if (indexOfPeriod != -1) {
-                extension = url.substring(indexOfPeriod, url.length() -1);
+                extension = url.substring(indexOfPeriod, url.length());
             }
         }
-        downloadProcessor.download(url, libraryDirectory.concat("/").concat(outputFileName).concat(extension));
+        downloadProcessor.download(url, getOutputFileName(libraryDirectory, outputFileName, extension));
+    }
+
+    private String getOutputFileName(final String libraryDirectory, final String outputFileName, final String extension) {
+        final String fullFilePath = libraryDirectory.concat("/").concat(outputFileName).concat(extension);
+        if (Files.exists(Paths.get(fullFilePath))) {
+            final String revisedOutputFileName = outputFileName.concat("-")
+                    .concat(LocalDateTime.now().format(AppUtil.getDateTimeFormatter()).replace(":", "_"));
+            return libraryDirectory.concat("/").concat(revisedOutputFileName).concat(extension);
+        }
+        return fullFilePath;
     }
 
 }

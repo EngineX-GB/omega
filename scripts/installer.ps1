@@ -19,7 +19,7 @@ if (-not $INSTALL_DIR) {
     $INSTALL_DIR = Read-Host("Enter installation path")
     Write-Output($INSTALL_DIR)
 
-    if (-not $INSTALL_HOME) {
+    if (-not $INSTALL_DIR) {
         Write-Output "Installation Path must be defined"
         exit 1
     }

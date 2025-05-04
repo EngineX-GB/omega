@@ -16,6 +16,7 @@ download_python_runtime
 Invoke-WebRequest https://raw.githubusercontent.com/EngineX-GB/omega-io-utils/master/scripts/model1.py -OutFile $DIRECTORY\model1.py
 Invoke-WebRequest https://raw.githubusercontent.com/EngineX-GB/omega-io-utils/master/scripts/model2.py -OutFile $DIRECTORY\model2.py
 Invoke-WebRequest https://raw.githubusercontent.com/EngineX-GB/omega-io-utils/master/scripts/model3.py -OutFile $DIRECTORY\model3.py
+Invoke-WebRequest https://raw.githubusercontent.com/EngineX-GB/omega-io-utils/master/scripts/model4.py -OutFile $DIRECTORY\model4.py
 Invoke-WebRequest https://raw.githubusercontent.com/EngineX-GB/omega-io-utils/master/scripts/model-runner.ps1 -OutFile $DIRECTORY\model-runner.ps1
 
 

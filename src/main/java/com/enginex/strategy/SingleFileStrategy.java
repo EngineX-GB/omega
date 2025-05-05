@@ -1,5 +1,6 @@
 package com.enginex.strategy;
 
+import com.enginex.model.Link;
 import com.enginex.processor.DownloadProcessor;
 import com.enginex.util.AppUtil;
 import org.slf4j.Logger;
@@ -14,11 +15,13 @@ public class SingleFileStrategy implements Strategy{
     private DownloadProcessor downloadProcessor;
     private String url;
     private String outputFileName;
+    private Link link;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileStrategy.class);
 
 
-    public SingleFileStrategy(final DownloadProcessor downloadProcessor, final String url, final String outputFileName) {
+    public SingleFileStrategy(final Link link, final DownloadProcessor downloadProcessor, final String url, final String outputFileName) {
+        this.link = link;
         this.downloadProcessor = downloadProcessor;
         this.url = url;
         this.outputFileName = outputFileName;
@@ -27,7 +30,7 @@ public class SingleFileStrategy implements Strategy{
     @Override
     public void start() throws Exception {
         final String libraryDirectory = System.getProperty("library.path");
-        LOGGER.info("Start downloading : " + outputFileName);
+        LOGGER.info("Start downloading [{}] : {}", link.getNumber(), link.getFilename());
         String extension = "";
         final int indexOfQueryMark = url.lastIndexOf('?');
         if (indexOfQueryMark != -1) {
@@ -44,6 +47,7 @@ public class SingleFileStrategy implements Strategy{
             }
         }
         downloadProcessor.download(url, getOutputFileName(libraryDirectory, outputFileName, extension));
+        LOGGER.info("Finished downloading [{}] : {}", link.getNumber(), link.getFilename());
     }
 
     private String getOutputFileName(final String libraryDirectory, final String outputFileName, final String extension) {

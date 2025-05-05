@@ -87,7 +87,7 @@ public class ApplicationRunnerImpl implements ApplicationRunner {
         if (request.getOperation() == Operation.INTERACTIVE) {
             final Strategy strategy;
             if (request.getLink().getStrategyType() == StrategyType.SINGLE_FILE) {
-                strategy = new SingleFileStrategy(downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
+                strategy = new SingleFileStrategy(request.getLink(), downloadProcessor, request.getLink().getUrl(), request.getLink().getFilename());
             } else {
                 strategy = new MultiFileStrategy(request.getLink(), System.getProperty("temp.path") + "/" + UUID.randomUUID(), downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, null);
             }

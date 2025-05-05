@@ -40,7 +40,7 @@ public class JobProcessorImpl implements JobProcessor {
                 strategyList.add(new MultiFileStrategy(link, System.getProperty("temp.path") + "/" + UUID.randomUUID(),
                         downloadProcessor, aggregationProcessor, cleanupProcessor, systemProcessor, ipcMessageHandler));
             } else {
-                strategyList.add(new SingleFileStrategy(downloadProcessor, link.getUrl(), link.getFilename()));
+                strategyList.add(new SingleFileStrategy(link, downloadProcessor, link.getUrl(), link.getFilename()));
             }
         }
         return strategyList;
